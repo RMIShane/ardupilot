@@ -25,7 +25,10 @@ AP_BattMonitor_Analog::read()
     _volt_pin_analog_source->set_pin(_mon._volt_pin[_state.instance]);
 
     // get voltage
-    _state.voltage = _volt_pin_analog_source->voltage_average() * _mon._volt_multiplier[_state.instance];
+    _state.voltage = _volt_pin_analog_source->voltage_average() * _mon._volt_multiplier[_state.instance];  
+    
+    //Hybrid Project ECU Light Insert Voltage
+    //_state.voltage = 49.7; //ecu_lite_voltage;
 
     // read current
     if (has_current()) {
@@ -38,6 +41,9 @@ AP_BattMonitor_Analog::read()
 
         // read current
         _state.current_amps = (_curr_pin_analog_source->voltage_average()-_mon._curr_amp_offset[_state.instance])*_mon._curr_amp_per_volt[_state.instance];
+        
+        //Hybrid Project ECU Light Insert Voltage
+        //_state.current_amps = 6.1; //ecu_lite_amperage;
 
         // update total current drawn since startup
         if (_state.last_time_micros != 0 && dt < 2000000.0f) {
