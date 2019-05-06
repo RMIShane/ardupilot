@@ -42,14 +42,10 @@ AP_BattMonitor_Analog::read()
         _curr_pin_analog_source->set_pin(_params._curr_pin);
 
         // read current
-<<<<<<< HEAD
         _state.current_amps = (_curr_pin_analog_source->voltage_average()-_params._curr_amp_offset)*_params._curr_amp_per_volt;
-=======
-        _state.current_amps = (_curr_pin_analog_source->voltage_average()-_mon._curr_amp_offset[_state.instance])*_mon._curr_amp_per_volt[_state.instance];
         
         //Hybrid Project ECU Light Insert Voltage
         //_state.current_amps = 6.1; //ecu_lite_amperage;
->>>>>>> 6bc7f36722... ECU_Lite Version 1
 
         // update total current drawn since startup
         if (_state.last_time_micros != 0 && dt < 2000000.0f) {
