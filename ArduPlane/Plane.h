@@ -159,6 +159,14 @@ public:
 
 private:
 
+    //Hybrid Project ECU_Lite
+    //char log_message[200];
+    float ecu_lite_running_time;
+    float ecu_lite_rpm = 0;
+    float ecu_lite_voltage = 0;
+    float ecu_lite_amperage = 0;
+    int ecu_lite_battery = 100;
+
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::FixedWing aparm;
 
@@ -771,7 +779,8 @@ private:
     // the crc of the last created PX4Mixer
     int32_t last_mixer_crc = -1;
 #endif // CONFIG_HAL_BOARD
-    
+
+    void update_ECU_Lite(void);                  //Hybrid Project ECU_Lite
     void adjust_nav_pitch_throttle(void);
     void update_load_factor(void);
     void send_fence_status(mavlink_channel_t chan);

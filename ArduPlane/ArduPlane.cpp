@@ -32,6 +32,7 @@
  */
 const AP_Scheduler::Task Plane::scheduler_tasks[] = {
                            // Units:   Hz      us
+    SCHED_TASK(update_ECU_Lite,         5,    200),  // Hybid Project ECU_Lite
     SCHED_TASK(ahrs_update,           400,    400),
     SCHED_TASK(read_radio,             50,    100),
     SCHED_TASK(check_short_failsafe,   50,    100),
@@ -114,6 +115,9 @@ void Plane::setup()
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks), MASK_LOG_PM);
+    
+    // Hybrid Project ECU_Lite (this sets up uartE with a buadrate of 57600) 
+    hal.uartE->begin(57600);
 }
 
 void Plane::loop()
