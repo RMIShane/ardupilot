@@ -154,13 +154,15 @@ void Plane::send_fence_status(mavlink_channel_t chan)
 
 void Plane::send_extended_status1(mavlink_channel_t chan)
 {
-    int16_t battery_current = -1;
-    int8_t battery_remaining = -1;
+    
+    //Hybrid Project Hijack Voltage and Amperage
+    //int16_t battery_current = -1;
+    //int8_t battery_remaining = -1;
 
-    if (battery.has_current() && battery.healthy()) {
-        battery_remaining = battery.capacity_remaining_pct();
-        battery_current = battery.current_amps() * 100;
-    }
+    //if (battery.has_current() && battery.healthy()) {
+        //battery_remaining = battery.capacity_remaining_pct();
+        //battery_current = battery.current_amps() * 100;
+    //}
 
     update_sensor_status_flags();
     
@@ -170,12 +172,21 @@ void Plane::send_extended_status1(mavlink_channel_t chan)
         control_sensors_enabled,
         control_sensors_health,
         (uint16_t)(scheduler.load_average() * 1000),
-        battery.voltage() * 1000, // mV
-        battery_current,        // in 10mA units
-        battery_remaining,      // in %
+        
+        //Hybrid Project Insert Values
+        ecu_lite_voltage * 1000,
+        ecu_lite_amperage * 100,
+        ecu_lite_battery,
         0, // comm drops %,
         0, // comm drops in pkts,
         0, 0, 0, 0);
+        
+        //battery.voltage() * 1000, // mV
+        //battery_current,        // in 10mA units
+        //battery_remaining,      // in %
+        //0, // comm drops %,
+        //0, // comm drops in pkts,
+        //0, 0, 0, 0);
 }
 
 void Plane::send_nav_controller_output(mavlink_channel_t chan)
@@ -316,12 +327,17 @@ void Plane::send_wind(mavlink_channel_t chan)
  */
 void NOINLINE Plane::send_rpm(mavlink_channel_t chan)
 {
-    if (rpm_sensor.enabled(0) || rpm_sensor.enabled(1)) {
-        mavlink_msg_rpm_send(
-            chan,
-            rpm_sensor.get_rpm(0),
-            rpm_sensor.get_rpm(1));
-    }
+    
+    //Hybrid Project ECU_Lite RPM Hijack Test
+    float spacer = 0;
+    mavlink_msg_rpm_send(chan,ecu_lite_rpm,spacer);
+    
+    //if (rpm_sensor.enabled(0) || rpm_sensor.enabled(1)) {
+        //mavlink_msg_rpm_send(
+            //chan,
+            //rpm_sensor.get_rpm(0),
+            //rpm_sensor.get_rpm(1));
+    //}
 }
 
 // sends a single pid info over the provided channel
