@@ -136,14 +136,19 @@ void Plane::calc_airspeed_errors()
         }
     }
 
-    // Bump up the target airspeed based on throttle nudging
-    if (throttle_allows_nudging && airspeed_nudge_cm > 0) {
+    // Add or subtract the target airspeed based on throttle nudging
+    if (throttle_allows_nudging) {
         target_airspeed_cm += airspeed_nudge_cm;
     }
 
-    // Apply airspeed limit
+    // Apply airspeed clamping
     if (target_airspeed_cm > (aparm.airspeed_max * 100))
         target_airspeed_cm = (aparm.airspeed_max * 100);
+    
+    else if (target_airspeed_cm < (aparm.airspeed_min * 100))
+        target_airspeed_cm = (aparm.airspeed_min * 100);
+        
+        
 
     // use the TECS view of the target airspeed for reporting, to take
     // account of the landing speed

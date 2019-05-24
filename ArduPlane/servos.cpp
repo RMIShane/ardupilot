@@ -321,7 +321,16 @@ void Plane::set_servos_controlled(void)
     }
 
     // convert 0 to 100% (or -100 to +100) into PWM
-    int8_t min_throttle = aparm.throttle_min.get();
+    int8_t min_throttle;
+    
+    if (!quadplane.in_vtol_mode()) {
+       min_throttle = aparm.throttle_min.get();;
+    }
+     
+    else {
+         min_throttle = 0;
+    }
+    
     int8_t max_throttle = aparm.throttle_max.get();
     
     if (min_throttle < 0 && !allow_reverse_thrust()) {
