@@ -365,6 +365,15 @@ const AP_Param::Info Plane::var_info[] = {
     // @Increment: 1
     // @User: Standard
     ASCALAR(airspeed_max, "ARSPD_FBW_MAX",  AIRSPEED_FBW_MAX),
+    
+    // @Param: ARSPD_FUEL_COMP
+    // @DisplayName: Minimum Airspeed
+    // @Description: This is the amount the minimum airspeed will be increased to compensate for a fuel load based on ECU_Lite_Fuel.
+    // @Units: m/s
+    // @Range: 0 10
+    // @Increment: 1
+    // @User: Standard
+    ASCALAR(airspeed_fuel_comp, "ARSPD_FUEL_COMP",  AIRSPEED_FUEL_COMP),
 
     // @Param: FBWB_ELEV_REV
     // @DisplayName: Fly By Wire elevator reverse

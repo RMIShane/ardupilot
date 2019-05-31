@@ -142,11 +142,32 @@ void Plane::calc_airspeed_errors()
     }
 
     // Apply airspeed clamping
-    if (target_airspeed_cm > (aparm.airspeed_max * 100))
+    if (target_airspeed_cm > (aparm.airspeed_max * 100)){
         target_airspeed_cm = (aparm.airspeed_max * 100);
+    }  
     
-    else if (target_airspeed_cm < (aparm.airspeed_min * 100))
-        target_airspeed_cm = (aparm.airspeed_min * 100);
+    else if (target_airspeed_cm < ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel))){
+        target_airspeed_cm = ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel));
+    }
+    
+    
+        //**********Dev Messaging**********
+    
+    static int airspeed_min_message_interval = 0;
+ 
+    if ((millis() - airspeed_min_message_interval) > 1000){
+        airspeed_min_message_interval = millis();
+        
+        char log_message[100];
+        int min_airspeed_message;
+        
+        //ecu_lite_fuel += -1;
+        
+        min_airspeed_message = ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel));
+                 
+        sprintf(log_message, "Min ASpd:%d, Tar ASpd:%d, Fuel:%d", min_airspeed_message, target_airspeed_cm, ecu_lite_fuel);
+                gcs().send_text(MAV_SEVERITY_INFO, log_message);
+     }  
         
         
 

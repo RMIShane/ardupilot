@@ -179,6 +179,8 @@ public:
         k_param_acro_pitch_rate,
         k_param_acro_locking,
         k_param_use_reverse_thrust = 129,
+        k_param_airspeed_fuel_comp,
+        
 
         //
         // 130: Sensor parameters

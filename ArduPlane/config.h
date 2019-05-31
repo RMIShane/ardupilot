@@ -214,7 +214,9 @@
 #ifndef AIRSPEED_FBW_MAX
  # define AIRSPEED_FBW_MAX               22
 #endif
-
+#ifndef AIRSPEED_FUEL_COMP
+ # define AIRSPEED_FUEL_COMP             0
+#endif
 #ifndef ALT_HOLD_FBW
  # define ALT_HOLD_FBW 0
 #endif

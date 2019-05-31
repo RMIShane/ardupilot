@@ -176,7 +176,7 @@ void Plane::send_extended_status1(mavlink_channel_t chan)
         //Hybrid Project Insert Values
         ecu_lite_voltage * 1000,
         ecu_lite_amperage * 100,
-        ecu_lite_battery,
+        ecu_lite_fuel,
         0, // comm drops %,
         0, // comm drops in pkts,
         0, 0, 0, 0);

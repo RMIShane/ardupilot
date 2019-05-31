@@ -165,7 +165,7 @@ private:
     float ecu_lite_rpm = 0;
     float ecu_lite_voltage = 0;
     float ecu_lite_amperage = 0;
-    int ecu_lite_battery = 100;
+    int ecu_lite_fuel = 50;
 
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::FixedWing aparm;

@@ -4,6 +4,7 @@
     #include "Plane.h"
 
 
+
     void Plane::update_ECU_Lite()
     {
     // This code assumes that the ECU is sending us lines of text.  We buffer
@@ -29,7 +30,7 @@
     //char line_test[80];
     //char test[]="RT:35 RPM:6542 V:49.8 A:-5.2 B:98 PWM:1223 CH:1 ESC:1290 CT:1 ER:0 CM:1";
     //sscanf(test, "RT:%f RPM:%f V:%f A:%f B:%d CH:%d ER:%d",
-    //&ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_battery, &ecu_lite_charging, &ecu_lite_esc_resets);
+    //&ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_fuel, &ecu_lite_charging, &ecu_lite_esc_resets);
     
     int n = hal.uartE->available();
     for (int i = 0; i < n; i++) {
@@ -60,9 +61,18 @@
     static int ecu_lite_esc_resets = 0;
     static int ecu_lite_calibration_mode = 0;
     
-    sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f B:%d PWM:%d CH:%d ESC:%d CT:%d ER:%d CM:%d",
-    &ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_battery, &ecu_lite_pwm, &ecu_lite_charging, &ecu_lite_esc_position, &ecu_lite_charge_trim, 
+    sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f F:%d PWM:%d CH:%d ESC:%d CT:%d ER:%d CM:%d",
+    &ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_fuel, &ecu_lite_pwm, &ecu_lite_charging, &ecu_lite_esc_position, &ecu_lite_charge_trim, 
     &ecu_lite_esc_resets, &ecu_lite_calibration_mode);
+    
+    //Fuel Level Clamping
+    if (ecu_lite_fuel < 0){
+     ecu_lite_fuel = 0;
+     }
+     
+    else if (ecu_lite_fuel > 100){
+    ecu_lite_fuel = 100;
+    }
     
     //**********Messaging**********
     if ((millis() - ecu_lite_message_interval) > 500){

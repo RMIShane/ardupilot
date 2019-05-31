@@ -206,7 +206,7 @@ void Plane::read_radio()
     } else if (g.throttle_nudge && SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) < 50 && geofence_stickmixing()) {
         float nudge = (50 - SRV_Channels::get_output_scaled(SRV_Channel::k_throttle)) * -0.02f;
         if (ahrs.airspeed_sensor_enabled()) {
-            airspeed_nudge_cm = (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100)) * nudge;
+            airspeed_nudge_cm = (aparm.airspeed_cruise_cm - ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel))) * nudge;
         } else {
             throttle_nudge = (aparm.throttle_cruise - aparm.throttle_min) * nudge * -1;
         }   
