@@ -146,8 +146,8 @@ void Plane::calc_airspeed_errors()
         target_airspeed_cm = (aparm.airspeed_max * 100);
     }  
     
-    else if (target_airspeed_cm < ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel))){
-        target_airspeed_cm = ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel));
+    else if (target_airspeed_cm < ((aparm.airspeed_min * 100) + (plane.g2.airspeed_fuel_comp * ecu_lite_fuel))){
+        target_airspeed_cm = ((aparm.airspeed_min * 100) + (plane.g2.airspeed_fuel_comp * ecu_lite_fuel));
     }
     
     
@@ -163,7 +163,7 @@ void Plane::calc_airspeed_errors()
         
         //ecu_lite_fuel += -1;
         
-        min_airspeed_message = ((aparm.airspeed_min * 100) + (aparm.airspeed_fuel_comp * ecu_lite_fuel));
+        min_airspeed_message = ((aparm.airspeed_min * 100) + (plane.g2.airspeed_fuel_comp * ecu_lite_fuel));
                  
         sprintf(log_message, "Min ASpd:%d, Tar ASpd:%d, Fuel:%d", min_airspeed_message, target_airspeed_cm, ecu_lite_fuel);
                 gcs().send_text(MAV_SEVERITY_INFO, log_message);

@@ -179,8 +179,6 @@ public:
         k_param_acro_pitch_rate,
         k_param_acro_locking,
         k_param_use_reverse_thrust = 129,
-        k_param_airspeed_fuel_comp,
-        
 
         //
         // 130: Sensor parameters
@@ -340,7 +338,7 @@ public:
         k_param_pidTeThrottle, // unused
         k_param_pidNavPitchAltitude, // unused
         k_param_pidWheelSteer, // unused
-
+        
         k_param_mixing_offset,
         k_param_dspoiler_rud_rate,
 
@@ -350,7 +348,7 @@ public:
     };
 
     AP_Int16 format_version;
-
+    
     // Telemetry control
     //
     AP_Int16 sysid_this_mav;
@@ -544,6 +542,11 @@ public:
     // Payload Gripper
     AP_Gripper gripper;
 #endif
+
+    //SuperVolo
+    AP_Int16 airspeed_fuel_comp;
+    AP_Int16 supervolo_test1;
+    AP_Int16 supervolo_test2;
 };
 
 extern const AP_Param::Info var_info[];

@@ -35,7 +35,6 @@ public:
         AP_Int8 takeoff_throttle_max;
         AP_Int16 airspeed_min;
         AP_Int16 airspeed_max;
-        AP_Int16 airspeed_fuel_comp;
         AP_Int32 airspeed_cruise_cm;
         AP_Int32 min_gndspeed_cm;
         AP_Int8  crash_detection_enable;
@@ -45,6 +44,11 @@ public:
         AP_Int8  autotune_level;
         AP_Int8  stall_prevention;
         AP_Int16 loiter_radius;
+        
+        //SuperVolo
+        AP_Int16 airspeed_fuel_comp;
+        AP_Int16 supervolo_test1;
+        AP_Int16 supervolo_test2;
 
         struct Rangefinder_State {
             bool in_range:1;

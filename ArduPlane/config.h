@@ -214,9 +214,6 @@
 #ifndef AIRSPEED_FBW_MAX
  # define AIRSPEED_FBW_MAX               22
 #endif
-#ifndef AIRSPEED_FUEL_COMP
- # define AIRSPEED_FUEL_COMP             0
-#endif
 #ifndef ALT_HOLD_FBW
  # define ALT_HOLD_FBW 0
 #endif
@@ -378,5 +375,20 @@
 
 #ifndef OSD_ENABLED
  #define OSD_ENABLED DISABLED
+#endif
+
+////////////////////////////////////////////////////////////////////////////
+// SuperVolo
+
+#ifndef SV_TEST1
+ # define SV_TEST1           1
+#endif
+
+#ifndef SV_TEST2
+ # define SV_TEST2           2
+#endif
+
+#ifndef AIRSPEED_FUEL_COMP
+ # define AIRSPEED_FUEL_COMP             0
 #endif
 

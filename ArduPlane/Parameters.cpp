@@ -365,15 +365,6 @@ const AP_Param::Info Plane::var_info[] = {
     // @Increment: 1
     // @User: Standard
     ASCALAR(airspeed_max, "ARSPD_FBW_MAX",  AIRSPEED_FBW_MAX),
-    
-    // @Param: ARSPD_FUEL_COMP
-    // @DisplayName: Minimum Airspeed
-    // @Description: This is the amount the minimum airspeed will be increased to compensate for a fuel load based on ECU_Lite_Fuel.
-    // @Units: m/s
-    // @Range: 0 10
-    // @Increment: 1
-    // @User: Standard
-    ASCALAR(airspeed_fuel_comp, "ARSPD_FUEL_COMP",  AIRSPEED_FUEL_COMP),
 
     // @Param: FBWB_ELEV_REV
     // @DisplayName: Fly By Wire elevator reverse
@@ -1183,6 +1174,35 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Path: ../libraries/AP_Gripper/AP_Gripper.cpp
     AP_SUBGROUPINFO(gripper, "GRIP_", 12, ParametersG2, AP_Gripper),
 #endif
+    
+    // @Param: ARSPD_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("ARSPD_FUEL_COMP", 13, ParametersG2, airspeed_fuel_comp, 0),
+   
+    // @Param: SuperVolo_Test1
+    // @DisplayName: Test 1
+    // @Description: Test 1
+    // @Range: 0 100
+    // @Units: %
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("SUPERVOLO_TEST1", 14, ParametersG2, supervolo_test1, 1),
+
+    // @Param: SuperVolo_Test2
+    // @DisplayName: Test 2
+    // @Description: Test 2
+    // @Range: 0 100
+    // @Units: %
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("SUPERVOLO_TEST2", 15, ParametersG2, supervolo_test2, 2),
+    
+    
 
     AP_GROUPEND
 };

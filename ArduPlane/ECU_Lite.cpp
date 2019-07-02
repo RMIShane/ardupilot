@@ -4,7 +4,6 @@
     #include "Plane.h"
 
 
-
     void Plane::update_ECU_Lite()
     {
     // This code assumes that the ECU is sending us lines of text.  We buffer
@@ -64,6 +63,9 @@
     sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f F:%d PWM:%d CH:%d ESC:%d CT:%d ER:%d CM:%d",
     &ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_fuel, &ecu_lite_pwm, &ecu_lite_charging, &ecu_lite_esc_position, &ecu_lite_charge_trim, 
     &ecu_lite_esc_resets, &ecu_lite_calibration_mode);
+    
+    //Parameter Test
+    ecu_lite_fuel = plane.g2.supervolo_test1;
     
     //Fuel Level Clamping
     if (ecu_lite_fuel < 0){
