@@ -545,8 +545,8 @@ public:
 
     //SuperVolo
     AP_Int16 airspeed_fuel_comp;
-    AP_Int16 supervolo_test1;
-    AP_Int16 supervolo_test2;
+    AP_Int16 supervolo_ov_thr;
+    AP_Int16 supervolo_dev;
 };
 
 extern const AP_Param::Info var_info[];

@@ -1184,23 +1184,23 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("ARSPD_FUEL_COMP", 13, ParametersG2, airspeed_fuel_comp, 0),
    
-    // @Param: SuperVolo_Test1
+    // @Param: SUPERVOLO_OV_THR
     // @DisplayName: Test 1
     // @Description: Test 1
     // @Range: 0 100
     // @Units: %
     // @Increment: 1
     // @User: Standard
-    AP_GROUPINFO("SUPERVOLO_TEST1", 14, ParametersG2, supervolo_test1, 1),
+    AP_GROUPINFO("SUPERVOLO_OV_THR", 14, ParametersG2, supervolo_ov_thr, 20),
 
-    // @Param: SuperVolo_Test2
+    // @Param: SUPERVOLO_DEV
     // @DisplayName: Test 2
     // @Description: Test 2
     // @Range: 0 100
     // @Units: %
     // @Increment: 1
     // @User: Standard
-    AP_GROUPINFO("SUPERVOLO_TEST2", 15, ParametersG2, supervolo_test2, 2),
+    AP_GROUPINFO("SUPERVOLO_DEV", 15, ParametersG2, supervolo_dev, 1),
     
     
 

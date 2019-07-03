@@ -324,12 +324,28 @@ void Plane::set_servos_controlled(void)
     int8_t min_throttle;
     
     if (!quadplane.in_vtol_mode()) {
-       min_throttle = aparm.throttle_min.get();;
+       min_throttle = aparm.throttle_min.get();
     }
      
     else {
-         min_throttle = 0;
+        min_throttle = ecu_lite_throttle_min;
     }
+    
+           //**********Dev Messaging**********
+    
+    //static int thr_min_message_interval = 0;
+ 
+    //if ((millis() - thr_min_message_interval) > 10000){
+        //thr_min_message_interval = millis();
+        
+        //char log_message[100];
+        //int min_thr_message;
+        
+        //min_thr_message = min_throttle;
+                 
+        //sprintf(log_message, "Min Thr:%d" ,min_thr_message);
+                //gcs().send_text(MAV_SEVERITY_INFO, log_message);
+     //}
     
     int8_t max_throttle = aparm.throttle_max.get();
     

@@ -154,19 +154,22 @@ void Plane::calc_airspeed_errors()
         //**********Dev Messaging**********
     
     static int airspeed_min_message_interval = 0;
- 
-    if ((millis() - airspeed_min_message_interval) > 1000){
-        airspeed_min_message_interval = millis();
+    
+    if (plane.g2.supervolo_dev == 1){
+    	if ((millis() - airspeed_min_message_interval) > 5000){
+        	airspeed_min_message_interval = millis();
         
-        char log_message[100];
-        int min_airspeed_message;
         
-        //ecu_lite_fuel += -1;
+        	char log_message[100];
+        	int min_airspeed_message;
         
-        min_airspeed_message = ((aparm.airspeed_min * 100) + (plane.g2.airspeed_fuel_comp * ecu_lite_fuel));
+        	//ecu_lite_fuel += -1;
+        
+        	min_airspeed_message = ((aparm.airspeed_min * 100) + (plane.g2.airspeed_fuel_comp * ecu_lite_fuel));
                  
-        sprintf(log_message, "Min ASpd:%d, Tar ASpd:%d, Fuel:%d", min_airspeed_message, target_airspeed_cm, ecu_lite_fuel);
+        	sprintf(log_message, "Min ASpd:%d, Tar ASpd:%d, Fuel:%d", min_airspeed_message, target_airspeed_cm, ecu_lite_fuel);
                 gcs().send_text(MAV_SEVERITY_INFO, log_message);
+         }       
      }  
         
         

@@ -57,15 +57,12 @@
     static int ecu_lite_charging = 0;
     static int ecu_lite_charge_trim = 0;
     static int ecu_lite_esc_position = 0;
-    static int ecu_lite_esc_resets = 0;
-    static int ecu_lite_calibration_mode = 0;
+    static int ecu_lite_overvoltage = 0;
     
-    sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f F:%d PWM:%d CH:%d ESC:%d CT:%d ER:%d CM:%d",
+    sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f F:%d PWM:%d CH:%d ESC:%d CT:%d OV:%d",
     &ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_fuel, &ecu_lite_pwm, &ecu_lite_charging, &ecu_lite_esc_position, &ecu_lite_charge_trim, 
-    &ecu_lite_esc_resets, &ecu_lite_calibration_mode);
-    
-    //Parameter Test
-    ecu_lite_fuel = plane.g2.supervolo_test1;
+    &ecu_lite_overvoltage);
+
     
     //Fuel Level Clamping
     if (ecu_lite_fuel < 0){
@@ -75,15 +72,30 @@
     else if (ecu_lite_fuel > 100){
     ecu_lite_fuel = 100;
     }
+
+
+    //Overvoltage Throttle Hold
+    if (ecu_lite_overvoltage == 1){
+    ecu_lite_throttle_min = plane.g2.supervolo_ov_thr;
+    }
+    
+    
+    //Parameter Testing
+    //ecu_lite_fuel = plane.g2.supervolo_test1;
+    
+    
     
     //**********Messaging**********
-    if ((millis() - ecu_lite_message_interval) > 500){
+    if ((millis() - ecu_lite_message_interval) > 1000){
         ecu_lite_message_interval = millis();
         
         char log_message[MAX_LINE + 100];
      
-        // Forward serial into MAVLINK message. (for testing)
-        //gcs().send_text(MAV_SEVERITY_INFO, line_buffer);
+        
+        if (ecu_lite_overvoltage == 1){
+              sprintf(log_message, "BATTERIES DISCONNECTED");
+              gcs().send_text(MAV_SEVERITY_INFO, log_message);
+        }
      
         //If charging
         if (ecu_lite_charging == 1){    
@@ -99,10 +111,11 @@
             ecu_lite_charge_current_seconds = ((millis() - ecu_lite_charge_start_millis) / 1000);
             
             //Charge Calibration Messaging (optional)
-            if (ecu_lite_calibration_mode == 1){      
-                sprintf(log_message, "CT:%d PWM:%d V:%.1f A:%.1f ESC:%d Trim:%d R:%d", ecu_lite_charge_current_seconds, ecu_lite_pwm, ecu_lite_voltage, ecu_lite_amperage, ecu_lite_esc_position, ecu_lite_charge_trim, ecu_lite_esc_resets); 
+            if (plane.g2.supervolo_dev == 1){      
+                sprintf(log_message, "CT:%d PWM:%d V:%.1f A:%.1f ESC:%d Trim:%d", ecu_lite_charge_current_seconds, ecu_lite_pwm, ecu_lite_voltage, ecu_lite_amperage,      ecu_lite_esc_position, ecu_lite_charge_trim); 
                 gcs().send_text(MAV_SEVERITY_INFO, log_message);
             }
+            
         }
      
         //Send charge complete message (once)      
