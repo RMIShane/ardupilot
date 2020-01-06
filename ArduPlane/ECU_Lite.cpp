@@ -31,9 +31,19 @@
     //sscanf(test, "RT:%f RPM:%f V:%f A:%f B:%d CH:%d ER:%d",
     //&ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_fuel, &ecu_lite_charging, &ecu_lite_esc_resets);
     
-    int n = hal.uartE->available();
+    
+    
+    // don't run if we don't have a port
+    if (ecu_port == nullptr) {
+        return;
+    }
+    
+    
+    //int n = hal.uartE->available();
+    int n = ecu_port->available();
     for (int i = 0; i < n; i++) {
-        char received = hal.uartE->read();
+        //char received = hal.uartE->read();
+        char received = ecu_port->read();
 
         line_buffer[line_index] = received;
 
@@ -58,10 +68,12 @@
     static int ecu_lite_charge_trim = 0;
     static int ecu_lite_esc_position = 0;
     static int ecu_lite_overvoltage = 0;
+    static int32_t ecu_lite_hobbs = 0;
+    static int ecu_lite_hobbs_message = 0;
     
-    sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f F:%d PWM:%d CH:%d ESC:%d CT:%d OV:%d",
+    sscanf(line_buffer, "RT:%f RPM:%f V:%f A:%f F:%d PWM:%d CH:%d ESC:%d CT:%d OV:%d H:%d",
     &ecu_lite_running_time, &ecu_lite_rpm, &ecu_lite_voltage, &ecu_lite_amperage, &ecu_lite_fuel, &ecu_lite_pwm, &ecu_lite_charging, &ecu_lite_esc_position, &ecu_lite_charge_trim, 
-    &ecu_lite_overvoltage);
+    &ecu_lite_overvoltage, &ecu_lite_hobbs);
 
     
     //Fuel Level Clamping
@@ -97,6 +109,24 @@
               gcs().send_text(MAV_SEVERITY_INFO, log_message);
         }
      
+        
+        //Hobbs Time (send once per engine cycle)
+        if ((ecu_lite_rpm < 1) && (ecu_lite_hobbs_message == 1)){
+        
+            //Hobbs Time      
+            int hours = ecu_lite_hobbs / 3600;
+            int tenths = (ecu_lite_hobbs % 3600) / 360;      
+            sprintf(log_message, "Hobbs Time: %d.%d", hours, tenths);
+            gcs().send_text(MAV_SEVERITY_INFO, log_message);
+            ecu_lite_hobbs_message = 0;
+        }
+        
+        //Reset Hobbs Message      
+        if (ecu_lite_rpm > 3000){
+            ecu_lite_hobbs_message = 1;
+        }
+        
+        
         //If charging
         if (ecu_lite_charging == 1){    
              
@@ -112,7 +142,7 @@
             
             //Charge Calibration Messaging (optional)
             if (plane.g2.supervolo_dev == 1){      
-                sprintf(log_message, "CT:%d PWM:%d V:%.1f A:%.1f ESC:%d Trim:%d", ecu_lite_charge_current_seconds, ecu_lite_pwm, ecu_lite_voltage, ecu_lite_amperage,      ecu_lite_esc_position, ecu_lite_charge_trim); 
+                sprintf(log_message, "CT:%d PWM:%d V:%.1f A:%.1f ESC:%d Trim:%d", ecu_lite_charge_current_seconds, ecu_lite_pwm, (double)ecu_lite_voltage, (double)ecu_lite_amperage,      ecu_lite_esc_position, ecu_lite_charge_trim); 
                 gcs().send_text(MAV_SEVERITY_INFO, log_message);
             }
             
@@ -121,8 +151,12 @@
         //Send charge complete message (once)      
         else{
             if (ecu_lite_charge_message == 1){
-                 gcs().send_text(MAV_SEVERITY_INFO, "Charge Stop %d", ecu_lite_charge_current_seconds);
-                 ecu_lite_charge_message = 0;
+                gcs().send_text(MAV_SEVERITY_INFO, "Charge Stop");
+                int minutes = ecu_lite_charge_current_seconds / 60;
+                int seconds = ecu_lite_charge_current_seconds % 60;
+                sprintf(log_message, "Charging Time %d.%d", minutes, seconds);
+                gcs().send_text(MAV_SEVERITY_INFO, log_message);
+                ecu_lite_charge_message = 0;
             }
          
             //Reset Current Charge Timer 

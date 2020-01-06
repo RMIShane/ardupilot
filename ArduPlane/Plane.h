@@ -167,6 +167,8 @@ private:
     float ecu_lite_amperage = 0;
     int ecu_lite_fuel = 50;
     int ecu_lite_throttle_min = 0;
+    AP_HAL::UARTDriver *ecu_port;
+
 
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::FixedWing aparm;

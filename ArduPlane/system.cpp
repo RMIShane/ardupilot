@@ -213,6 +213,11 @@ void Plane::init_ardupilot()
     g2.gripper.init();
 #endif
 
+    ecu_port = serial_manager.find_serial(AP_SerialManager::SerialProtocol_Volo_ECU, 0);
+    if (ecu_port != nullptr) {
+        ecu_port->begin(57600);
+    }
+
     // disable safety if requested
     BoardConfig.init_safety();
 }
