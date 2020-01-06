@@ -117,7 +117,7 @@ void Plane::setup()
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks), MASK_LOG_PM);
     
     // Hybrid Project ECU_Lite (this sets up uartE with a buadrate of 57600) 
-    hal.uartE->begin(57600);
+    //hal.uartE->begin(57600);
 }
 
 void Plane::loop()
