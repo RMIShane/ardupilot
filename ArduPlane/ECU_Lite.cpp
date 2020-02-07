@@ -12,7 +12,7 @@
 
     // If the ECU sends a line longer than this, we'll treat it as if it were two
     // lines.
-    const int MAX_LINE = 80;
+    const int MAX_LINE = 100;
 
     // Making this variable "static" means that it doesn't get wiped out when the
     // function returns.  So it's like having a global variable in that it remembers
