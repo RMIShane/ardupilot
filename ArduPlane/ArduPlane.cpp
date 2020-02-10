@@ -106,6 +106,9 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
 #if LANDING_GEAR_ENABLED == ENABLED
     SCHED_TASK(landing_gear_update, 5, 50),
 #endif
+
+    //SuperVolo
+    SCHED_TASK_CLASS(AP_ECU_Telem, &plane.g2.ecu_telem, update, 5, 200),   
 };
 
 constexpr int8_t Plane::_failsafe_priorities[7];

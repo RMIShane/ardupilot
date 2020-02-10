@@ -559,6 +559,13 @@ public:
     AP_LandingGear landing_gear;
 #endif
 
+    //SuperVolo
+    AP_ECU_Telem ecu_telem;
+    
+    //AP_Int16 airspeed_fuel_comp;
+    //AP_Int16 supervolo_ov_thr;
+    //AP_Int16 supervolo_dev;
+
     // crow flaps weighting
     AP_Int8 crow_flap_weight_outer;
     AP_Int8 crow_flap_weight_inner;

@@ -1238,6 +1238,45 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Increment: 1
     // @User: Advanced
     AP_GROUPINFO("DSPOILER_AILMTCH", 21, ParametersG2, crow_flap_aileron_matching, 100),
+    
+    
+    // @Group: SV_
+    // @Path: ...
+    AP_SUBGROUPINFO(ecu_telem, "SV_", 22, ParametersG2, AP_ECU_Telem),
+    
+    
+    // @Param: ARSPD_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    //AP_GROUPINFO("ARSPD_FUEL_COMP", 13, ParametersG2, airspeed_fuel_comp, 0),
+    
+    // @Param: SUPERVOLO_OV_THR
+    // @DisplayName: Test 1
+    // @Description: Test 1
+    // @Range: 0 100
+    // @Units: %
+    // @Increment: 1
+    // @User: Standard
+    //AP_GROUPINFO("SUPERVOLO_OV_THR", 23, ParametersG2, supervolo_ov_thr, 20),
+    
+    // @Param: SUPERVOLO_DEV
+    // @DisplayName: Test 2
+    // @Description: Test 2
+    // @Range: 0 100
+    // @Units: %
+    // @Increment: 1
+    // @User: Standard
+    //AP_GROUPINFO("SUPERVOLO_DEV", 24, ParametersG2, supervolo_dev, 1),
+    
+    
+    
+    
+
+    
 
     AP_GROUPEND
 };

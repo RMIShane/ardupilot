@@ -180,6 +180,8 @@ void Plane::init_ardupilot()
 #if GRIPPER_ENABLED == ENABLED
     g2.gripper.init();
 #endif
+    //SuperVolo
+    g2.ecu_telem.init();
 
     // disable safety if requested
     BoardConfig.init_safety();
