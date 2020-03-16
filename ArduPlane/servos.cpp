@@ -333,7 +333,15 @@ void Plane::set_servos_manual_passthrough(void)
     if (quadplane.available() && (quadplane.options & QuadPlane::OPTION_IDLE_GOV_MANUAL)) {
         // for quadplanes it can be useful to run the idle governor in MANUAL mode
         // as it prevents the VTOL motors from running
-        int8_t min_throttle = aparm.throttle_min.get();
+        
+        //SuperVolo allow engine to shutdown in vtol modes    
+        int8_t min_throttle;  
+        if (!quadplane.in_vtol_mode()) {
+            min_throttle = aparm.throttle_min.get();;
+        }
+        else {
+            min_throttle = 0;
+        }
 
         // apply idle governor
         g2.ice_control.update_idle_governor(min_throttle);
@@ -401,7 +409,16 @@ void Plane::set_servos_controlled(void)
     }
 
     // convert 0 to 100% (or -100 to +100) into PWM
-    int8_t min_throttle = aparm.throttle_min.get();
+    
+    //SuperVolo allow engine to shutdown in vtol modes    
+    int8_t min_throttle;  
+    if (!quadplane.in_vtol_mode()) {
+       min_throttle = aparm.throttle_min.get();;
+    }
+    else {
+         min_throttle = 0;
+    }
+    
     int8_t max_throttle = aparm.throttle_max.get();
 
     // apply idle governor

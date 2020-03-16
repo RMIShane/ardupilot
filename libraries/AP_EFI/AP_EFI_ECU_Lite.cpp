@@ -19,7 +19,7 @@
 #if EFI_ENABLED
 #include <AP_SerialManager/AP_SerialManager.h>
 
-#define MESSAGE_TIME_MS 1000
+#define MESSAGE_TIME_MS 5000
 
 extern const AP_HAL::HAL &hal;
 
@@ -59,14 +59,17 @@ void AP_EFI_ECU_Lite::update()
 
             // write the latest data to a log
             write_log();
+            
+            copy_to_frontend();
         }
     }
 }
 
-bool AP_EFI_ECU_Lite::get_battery(float &voltage, float &current) const
+bool AP_EFI_ECU_Lite::get_battery(float &voltage, float &current, float &mah) const
 {
     voltage = _latest.voltage;
     current = _latest.amperage;
+    mah = _latest.mah;
     return true;
 }
 
@@ -76,7 +79,12 @@ void AP_EFI_ECU_Lite::check_status()
 
     if ((now - _last_message) > MESSAGE_TIME_MS) {
         _last_message = now;
-
+        
+        // debugging
+        //gcs().send_text(MAV_SEVERITY_INFO, "RPM: %f",_latest.rpm);
+        //gcs().send_text(MAV_SEVERITY_INFO, "Fuel: %f",_latest.fuel);
+        //gcs().send_text(MAV_SEVERITY_INFO, "MAH: %f",_latest.mah);
+        
         if (_latest.overvoltage == 1){
               gcs().send_text(MAV_SEVERITY_INFO, "BATTERIES DISCONNECTED");
         }
@@ -138,7 +146,7 @@ void AP_EFI_ECU_Lite::check_status()
 void AP_EFI_ECU_Lite::write_log()
 {
     AP::logger().Write("EFI",
-                       "TimeUS,RT,RPM,V,A,F,PWM,CH,ESC,CT,OV,H",
+                       "TimeUS,RT,RPM,V,A,MAH,F,PWM,CH,ESC,CT,OV,H",
                        "ssqvA%Y----s-",
                        "F????????????",
                        "Qfffffhhhhhih",
@@ -147,6 +155,7 @@ void AP_EFI_ECU_Lite::write_log()
                        float(_latest.rpm),
                        float(_latest.voltage),
                        float(_latest.amperage),
+                       float(_latest.mah),
                        float(_latest.fuel),
                        int16_t(_latest.pwm),
                        int16_t(_latest.charging),
@@ -231,10 +240,7 @@ void AP_EFI_ECU_Lite::decode_latest_term()
 
         case 4:
             _temp.rpm = strtof(_term, NULL);
-            if (_temp.rpm < 0.0f) {
-                _sentence_valid = false;
-            }
-            break;
+            break;            
 
         case 5:
             if (strcmp(_term, "V") != 0) {
@@ -257,81 +263,94 @@ void AP_EFI_ECU_Lite::decode_latest_term()
 
         case 8:
             _temp.amperage = strtof(_term, NULL);
-            if (_temp.amperage < 0.0f) {
+            //if (_temp.amperage < 0.0f) {
+            //    _sentence_valid = false;
+            //}
+            break;           
+        
+        case 9:
+            if (strcmp(_term, "MAH") != 0) {
+                _sentence_valid = false;
+            }
+            break;  
+        
+        case 10:
+            _temp.mah = strtof(_term, NULL);
+            if (_temp.mah < 0.0f) {
                 _sentence_valid = false;
             }
             break;
-
-        case 9:
+            
+        case 11:
             if (strcmp(_term, "F") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 10:
+        case 12:
             _temp.fuel = strtof(_term, NULL);
             if (_temp.fuel < 0.0f || _temp.fuel > 100) {
                 _sentence_valid = false;
             }
             break;
 
-        case 11:
+        case 13:
             if (strcmp(_term, "PWM") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 12:
+        case 14:
             _temp.pwm = strtol(_term, NULL, 10);
             break;
 
-        case 13:
+        case 15:
             if (strcmp(_term, "CH") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 14:
+        case 16:
             _temp.charging = strtol(_term, NULL, 10);
             break;
 
-        case 15:
+        case 17:
             if (strcmp(_term, "ESC") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 16:
+        case 18:
             _temp.esc_position = strtol(_term, NULL, 10);
             break;
 
-        case 17:
+        case 19:
             if (strcmp(_term, "CT") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 18:
+        case 20:
             _temp.charge_trim = strtol(_term, NULL, 10);
             break;
 
-        case 19:
+        case 21:
             if (strcmp(_term, "OV") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 20:
+        case 22:
             _temp.overvoltage = strtol(_term, NULL, 10);
             break;
 
-        case 21:
+        case 23:
             if (strcmp(_term, "H") != 0) {
                 _sentence_valid = false;
             }
             break;
 
-        case 22:
+        case 24:
             _temp.hobbs = strtol(_term, NULL, 10);
             break;
     }

@@ -29,7 +29,7 @@ public:
     void update() override;
 
     // get battery voltage and current
-    bool get_battery(float &voltage, float &current) const override;
+    bool get_battery(float &voltage, float &current, float &mah) const override;
 
 private:
     AP_HAL::UARTDriver *_uart;
@@ -51,6 +51,7 @@ private:
         float rpm;
         float voltage;
         float amperage;
+        float mah;
         float fuel;
         int16_t pwm;
         int16_t charging;

@@ -91,6 +91,7 @@ public:
         bool        healthy;                   // battery monitor is communicating correctly
         bool        is_powering_off;           // true when power button commands power off
         bool        powerOffNotified;          // only send powering off notification once
+        uint8_t     consumed_mah_est = 0;      // estimate mah_consumed on power up based on voltage to avoid 100% battery if battery is not fully charged
     };
 
     // Return the number of battery monitor instances

@@ -12,7 +12,7 @@ AP_BattMonitor_EFI::AP_BattMonitor_EFI(AP_BattMonitor &mon,
                                              AP_BattMonitor_Params &params) :
     AP_BattMonitor_Backend(mon, mon_state, params)
 {
-    _state.voltage = 1.0; // show a fixed voltage of 1v
+    _state.voltage = 0.0; // show a fixed voltage of 0v
 }
 
 // read - read the voltage and current
@@ -35,24 +35,30 @@ void AP_BattMonitor_EFI::read()
     switch (_params._type) {
         case AP_BattMonitor_Params::BattMonitor_TYPE_EFI_TANK:
             proportion_remaining = EFI->get_tank_pct();
-            _state.last_time_micros = AP_HAL::micros();
-
+            _state.last_time_micros = AP_HAL::micros();       
+      
             // map consumed_mah to consumed percentage
-            _state.consumed_mah = (1 - proportion_remaining) * _params._pack_capacity;
+            _state.consumed_mah = (1 - (proportion_remaining / 100)) * _params._pack_capacity;
 
             // map consumed_wh using fixed voltage of 1
             _state.consumed_wh = _state.consumed_mah;
+       
 
             break;
 
-        case AP_BattMonitor_Params::BattMonitor_TYPE_EFI_BATTERY:
+
+        case AP_BattMonitor_Params::BattMonitor_TYPE_EFI_BATTERY:     
             float voltage;
             float current;
-            if (EFI->get_battery(voltage, current)) {
-                _state.last_time_micros = AP_HAL::micros();
+            float mah;
+            if (EFI->get_battery(voltage, current, mah)) {                         
+                
                 _state.voltage = voltage;
                 _state.current_amps = current;
+                _state.consumed_mah = mah;                        
             }
+            
+            
             break;
         default:
             _state.healthy = false;
