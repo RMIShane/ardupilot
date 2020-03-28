@@ -589,6 +589,9 @@ private:
     // the aerodymamic load factor. This is calculated from the demanded
     // roll before the roll is clipped, using 1/sqrt(cos(nav_roll))
     float aerodynamic_load_factor = 1.0f;
+    
+    // SuperVolo Temp
+    uint32_t roll_limit_message;
 
     // a smoothed airspeed estimate, used for limiting roll angle
     float smoothed_airspeed;

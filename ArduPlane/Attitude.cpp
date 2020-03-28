@@ -615,22 +615,13 @@ void Plane::adjust_nav_pitch_throttle(void)
   airspeed
  */
 void Plane::update_load_factor(void)
-{
+{  
     float demanded_roll = fabsf(nav_roll_cd*0.01f);
     if (demanded_roll > 85) {
         // limit to 85 degrees to prevent numerical errors
         demanded_roll = 85;
     }
-    aerodynamic_load_factor = 1.0f / safe_sqrt(cosf(radians(demanded_roll)));
-
-    if (quadplane.in_transition() &&
-        (quadplane.options & QuadPlane::OPTION_LEVEL_TRANSITION)) {
-        // the user wants transitions to be kept level to within LEVEL_ROLL_LIMIT
-        roll_limit_cd = MIN(roll_limit_cd, g.level_roll_limit*100);
-        nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit_cd, roll_limit_cd);
-        return;
-    }
-    
+     
     if (!aparm.stall_prevention) {
         // stall prevention is disabled
         return;
@@ -643,26 +634,59 @@ void Plane::update_load_factor(void)
         // no limits while hovering
         return;
     }
-       
+    
+    if (quadplane.in_transition() &&
+        (quadplane.options & QuadPlane::OPTION_LEVEL_TRANSITION)) {
+        // the user wants transitions to be kept level to within LEVEL_ROLL_LIMIT
+        roll_limit_cd = MIN(roll_limit_cd, g.level_roll_limit*100);
+        nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit_cd, roll_limit_cd);
+        return;
+    } else {
+        
+         //Composite Roll Limiter
+          
+         //float fuel_component =  map(fuel_level, 0, 100, 0.0, fuel_comp * 100);
+         //constrain_float(fuel_component, 0, 1);
 
-    float max_load_factor = smoothed_airspeed / MAX(aparm.airspeed_min, 1);
-    if (max_load_factor <= 1) {
-        // our airspeed is below the minimum airspeed. Limit roll to
-        // 25 degrees
-        nav_roll_cd = constrain_int32(nav_roll_cd, -2500, 2500);
-        roll_limit_cd = MIN(roll_limit_cd, 2500);
-    } else if (max_load_factor < aerodynamic_load_factor) {
-        // the demanded nav_roll would take us past the aerodymamic
-        // load limit. Limit our roll to a bank angle that will keep
-        // the load within what the airframe can handle. We always
-        // allow at least 25 degrees of roll however, to ensure the
-        // aircraft can be maneuvered with a bad airspeed estimate. At
-        // 25 degrees the load factor is 1.1 (10%)
-        int32_t roll_limit = degrees(acosf(sq(1.0f / max_load_factor)))*100;
-        if (roll_limit < 2500) {
-            roll_limit = 2500;
+         float airspeed_component = ((aparm.airspeed_cruise_cm - (smoothed_airspeed * 100.0f)) / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100.0f))); 
+         if (airspeed_component < -1.0){
+             airspeed_component = -1;
+         }     
+         else if (airspeed_component > 1.0){
+             airspeed_component = 1;
+         }
+         
+         float pitch_component = ((ahrs.pitch * 5725.58f) - plane.g.pitch_trim_cd) / aparm.pitch_limit_max_cd;        
+         if (pitch_component < -1.0){
+             pitch_component = -1;
+         }     
+         else if (pitch_component > 1.0){
+             pitch_component = 1;
+         }
+        
+         int32_t roll_limit_composite = aparm.roll_limit_cd - ((airspeed_component + pitch_component) * (aparm.roll_limit_cd - 2500.0f));
+         if (roll_limit_composite < 1000){
+             roll_limit_composite = 1000;
+         }     
+         else if (roll_limit_composite > aparm.roll_limit_cd){
+             roll_limit_composite = aparm.roll_limit_cd;
+         }
+                   
+         nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit_composite, roll_limit_composite);
+         roll_limit_cd = MIN(roll_limit_cd, roll_limit_composite);
+        
+        // Debug
+        const uint32_t now = AP_HAL::millis();
+        int16_t roll_limit_ms = roll_limit_cd;
+        //int16_t pitch_ms = ((ahrs.pitch * 5725.58f) - plane.g.pitch_trim_cd);  
+     
+        if ((now - roll_limit_message) > 1000) {
+            roll_limit_message = now;         
+            //gcs().send_text(MAV_SEVERITY_INFO, "ASpd: %f", smoothed_airspeed);
+            //gcs().send_text(MAV_SEVERITY_INFO, "AC: %f", airspeed_component);
+            //gcs().send_text(MAV_SEVERITY_INFO, "Pitch: %d", pitch_ms);
+            //gcs().send_text(MAV_SEVERITY_INFO, "PC: %f", pitch_component);
+            gcs().send_text(MAV_SEVERITY_INFO, "Roll Limit: %d", roll_limit_ms);       
         }
-        nav_roll_cd = constrain_int32(nav_roll_cd, -roll_limit, roll_limit);
-        roll_limit_cd = MIN(roll_limit_cd, roll_limit);
-    }    
+    }
 }
