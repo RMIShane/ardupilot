@@ -1,4 +1,5 @@
 #include "Plane.h"
+#include <AP_EFI/AP_EFI.h>
 
 /*
   get a speed scaling number for control surfaces. This is applied to
@@ -644,11 +645,10 @@ void Plane::update_load_factor(void)
     } else {
         
          //Composite Roll Limiter
-          
-         //float fuel_component =  map(fuel_level, 0, 100, 0.0, fuel_comp * 100);
-         //constrain_float(fuel_component, 0, 1);
+         
+         fuel_comp = 0; //How do I either access fuel level here or modify this varible in ECU_lite or Battery_monitor where fuel level is avaliable?
 
-         float airspeed_component = ((aparm.airspeed_cruise_cm - (smoothed_airspeed * 100.0f)) / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100.0f))); 
+         float airspeed_component = (aparm.airspeed_cruise_cm + (fuel_comp * 100.0f) - (smoothed_airspeed * 100.0f)) / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100.0f)); 
          if (airspeed_component < -1.0){
              airspeed_component = -1;
          }     
@@ -686,7 +686,8 @@ void Plane::update_load_factor(void)
             //gcs().send_text(MAV_SEVERITY_INFO, "AC: %f", airspeed_component);
             //gcs().send_text(MAV_SEVERITY_INFO, "Pitch: %d", pitch_ms);
             //gcs().send_text(MAV_SEVERITY_INFO, "PC: %f", pitch_component);
-            gcs().send_text(MAV_SEVERITY_INFO, "Roll Limit: %d", roll_limit_ms);       
+            gcs().send_text(MAV_SEVERITY_INFO, "Roll Limit: %d", roll_limit_ms);
+            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp: %f", fuel_comp);      
         }
     }
 }

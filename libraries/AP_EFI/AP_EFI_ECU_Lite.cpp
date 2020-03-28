@@ -47,10 +47,10 @@ void AP_EFI_ECU_Lite::update()
             internal_state.run_time = _latest.running_time;
             internal_state.engine_speed_rpm = _latest.rpm;
             internal_state.fuel_remaining_pct = _latest.fuel;
-            internal_state.lifetime_run_time = _latest.hobbs;
+            internal_state.lifetime_run_time = _latest.engine_time;
 
-            //Overvoltage Throttle Hold
-            //if (_latest.overvoltage == 1) {
+            //Error State Throttle Hold
+            //if (_latest.error_state == 1) {
                 //ecu_lite_throttle_min = plane.g2.supervolo_ov_thr;
             //}
 
@@ -85,23 +85,23 @@ void AP_EFI_ECU_Lite::check_status()
         //gcs().send_text(MAV_SEVERITY_INFO, "Fuel: %f",_latest.fuel);
         //gcs().send_text(MAV_SEVERITY_INFO, "MAH: %f",_latest.mah);
         
-        if (_latest.overvoltage == 1){
+        if (_latest.error_state == 1){
               gcs().send_text(MAV_SEVERITY_INFO, "BATTERIES DISCONNECTED");
         }
 
-        // Hobbs Time (send once per engine cycle)
-        if (_latest.rpm < 1 && _send_hobbs_message) {
-            _send_hobbs_message = false;
+        // Engine Time (send once per engine cycle)
+        if (_latest.rpm < 1 && _send_engine_time_message) {
+            _send_engine_time_message = false;
 
-            // Hobbs Time 
-            int16_t hours = _latest.hobbs / 3600;
-            int16_t tenths = (_latest.hobbs % 3600) / 360;
-            gcs().send_text(MAV_SEVERITY_INFO, "Hobbs Time: %d.%d", hours, tenths);
+            // Engine Time 
+            int16_t hours = _latest.engine_time / 3600;
+            int16_t tenths = (_latest.engine_time % 3600) / 360;
+            gcs().send_text(MAV_SEVERITY_INFO, "Engine Time: %d.%d", hours, tenths);
         }
 
-        // Reset Hobbs Message
+        // Reset Engine Message
         if (_latest.rpm > 3000) {
-            _send_hobbs_message = true;
+            _send_engine_time_message = true;
         }
 
         // if charging
@@ -158,9 +158,8 @@ void AP_EFI_ECU_Lite::write_log()
         charging      : _latest.charging,
         charge_trim   : _latest.charge_trim,
         esc_position  : _latest.esc_position,
-        overvoltage   : _latest.overvoltage,
-        hobbs         : _latest.hobbs,
-        hobbs_message : _latest.hobbs_message
+        error_state   : _latest.error_state,
+        engine_time   : _latest.engine_time
     };
     AP::logger().WriteBlock(&pkt, sizeof(pkt));
 }
@@ -334,23 +333,23 @@ void AP_EFI_ECU_Lite::decode_latest_term()
             break;
 
         case 21:
-            if (strcmp(_term, "OV") != 0) {
+            if (strcmp(_term, "ES") != 0) {
                 _sentence_valid = false;
             }
             break;
 
         case 22:
-            _temp.overvoltage = strtol(_term, NULL, 10);
+            _temp.error_state = strtol(_term, NULL, 10);
             break;
 
         case 23:
-            if (strcmp(_term, "H") != 0) {
+            if (strcmp(_term, "ET") != 0) {
                 _sentence_valid = false;
             }
             break;
 
         case 24:
-            _temp.hobbs = strtol(_term, NULL, 10);
+            _temp.engine_time = strtol(_term, NULL, 10);
             break;
     }
 

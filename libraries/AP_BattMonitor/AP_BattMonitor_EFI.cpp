@@ -42,7 +42,6 @@ void AP_BattMonitor_EFI::read()
 
             // map consumed_wh using fixed voltage of 1
             _state.consumed_wh = _state.consumed_mah;
-       
 
             break;
 

@@ -570,6 +570,10 @@ public:
     // EFI Engine Monitor
     AP_EFI efi;
 #endif
+
+    // Airspeed Fuel Comp    
+    AP_Int16 airspeed_fuel_comp;
+
 };
 
 extern const AP_Param::Info var_info[];

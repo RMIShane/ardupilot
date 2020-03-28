@@ -85,7 +85,7 @@ public:
     float get_tank_pct() const { return state.fuel_remaining_pct; }
 
     // get battery info from backend if available
-    bool get_battery(float &voltage, float &current, float &mah) const;
+    bool get_battery(float &voltage, float &current, float &mah) const;    
 
 protected:
 

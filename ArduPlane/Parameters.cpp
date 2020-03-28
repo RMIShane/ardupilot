@@ -1247,6 +1247,15 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(efi, "EFI", 22, ParametersG2, AP_EFI),
 #endif
 
+    // @Param: ARSPD_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("_ARSPD_FUEL_COMP", 23, ParametersG2, airspeed_fuel_comp, 0),
+
     AP_GROUPEND
 };
 

@@ -30,6 +30,9 @@ public:
 
     // get battery voltage and current
     bool get_battery(float &voltage, float &current, float &mah) const override;
+    
+    //Airspeed Fuel Level Comp
+    int EFI_fuel;
 
 private:
     AP_HAL::UARTDriver *_uart;
@@ -47,7 +50,7 @@ private:
 
     // Serial Protocol Variables
     struct ECU_Data {
-        float running_time;
+        int32_t running_time;
         float rpm;
         float voltage;
         float amperage;
@@ -57,9 +60,8 @@ private:
         int16_t charging;
         int16_t charge_trim;
         int16_t esc_position;
-        int16_t overvoltage;
-        int32_t hobbs;
-        int16_t hobbs_message;
+        int16_t error_state;
+        int32_t engine_time;
     };
     ECU_Data _temp;
     ECU_Data _latest;
@@ -71,10 +73,9 @@ private:
     uint8_t _term_offset;       // offset within the _term buffer where the next character should be placed
     bool _in_string;            // true if we should be decoding
 
-
     // status test varables
     uint32_t _last_message;
-    bool _send_hobbs_message = true;
+    bool _send_engine_time_message = true;
     bool _send_charge_message = true;
     bool _send_charge_complete_message;
     uint32_t _charge_start_millis;

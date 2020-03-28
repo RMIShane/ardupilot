@@ -1243,7 +1243,7 @@ struct PACKED log_Arm_Disarm {
 struct PACKED Log_EFI_ECU_Lite {
     LOG_PACKET_HEADER;
     uint64_t time_us;
-    float running_time;
+    int32_t running_time;
     float rpm;
     float voltage;
     float amperage;
@@ -1253,9 +1253,8 @@ struct PACKED Log_EFI_ECU_Lite {
     int16_t charging;
     int16_t charge_trim;
     int16_t esc_position;
-    int16_t overvoltage;
-    int32_t hobbs;
-    int16_t hobbs_message;
+    int16_t error_state;
+    int32_t engine_time;
 };
 
 
