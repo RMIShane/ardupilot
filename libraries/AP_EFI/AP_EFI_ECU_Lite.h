@@ -30,9 +30,7 @@ public:
 
     // get battery voltage and current
     bool get_battery(float &voltage, float &current, float &mah) const override;
-    
-    //Airspeed Fuel Level Comp
-    int EFI_fuel;
+
 
 private:
     AP_HAL::UARTDriver *_uart;
@@ -78,5 +76,6 @@ private:
     bool _send_engine_time_message = true;
     bool _send_charge_message = true;
     bool _send_charge_complete_message;
+    bool _send_error_state_message = true;
     uint32_t _charge_start_millis;
 };

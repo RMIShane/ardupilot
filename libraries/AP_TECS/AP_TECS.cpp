@@ -3,6 +3,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Baro/AP_Baro.h>
 #include <AP_Logger/AP_Logger.h>
+#include <AP_EFI/AP_EFI.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -461,11 +462,13 @@ void AP_TECS::_update_height_demand(void)
         // glide slope right away.
         max_sink_rate = _maxSinkRate_approach;
     }
-
-    // Limit height rate of change
-    if ((_hgt_dem - _hgt_dem_prev) > (_maxClimbRate * 0.1f))
+    
+    // Limit height rate of change    
+    float fuel_comp_climb = AP::EFI()->get_fuel_comp_climb();
+    
+    if ((_hgt_dem - _hgt_dem_prev) > ((_maxClimbRate - fuel_comp_climb) * 0.1f))
     {
-        _hgt_dem = _hgt_dem_prev + _maxClimbRate * 0.1f;
+        _hgt_dem = _hgt_dem_prev + (_maxClimbRate - fuel_comp_climb) * 0.1f;
     }
     else if ((_hgt_dem - _hgt_dem_prev) < (-max_sink_rate * 0.1f))
     {
@@ -950,8 +953,11 @@ void AP_TECS::_update_STE_rate_lim(void)
 {
     // Calculate Specific Total Energy Rate Limits
     // This is a trivial calculation at the moment but will get bigger once we start adding altitude effects
-    _STEdot_max = _maxClimbRate * GRAVITY_MSS;
-    _STEdot_min = - _minSinkRate * GRAVITY_MSS;
+    
+    float fuel_comp_climb = AP::EFI()->get_fuel_comp_climb();
+     
+    _STEdot_max = (_maxClimbRate - fuel_comp_climb) * GRAVITY_MSS;
+    _STEdot_min = - (_minSinkRate - fuel_comp_climb) * GRAVITY_MSS;
 }
 
 

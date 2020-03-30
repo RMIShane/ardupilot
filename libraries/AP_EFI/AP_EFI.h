@@ -85,7 +85,15 @@ public:
     float get_tank_pct() const { return state.fuel_remaining_pct; }
 
     // get battery info from backend if available
-    bool get_battery(float &voltage, float &current, float &mah) const;    
+    bool get_battery(float &voltage, float &current, float &mah) const;  
+    
+    // get fuel comp airspeed
+    int32_t get_fuel_comp_arspd_cm() const { return state.fuel_remaining_pct * fuel_comp_arspd; }
+    
+    // get fuel comp climb
+    float get_fuel_comp_climb() const { return (state.fuel_remaining_pct * fuel_comp_climb) / 100.0f; }   
+    
+    
 
 protected:
 
@@ -94,6 +102,10 @@ protected:
     AP_Float coef2;
 
     EFI_State state;
+    
+    //Fuel Comp    
+    AP_Int16 fuel_comp_arspd;
+    AP_Float fuel_comp_climb;
 
 private:
     // Front End Parameters

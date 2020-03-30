@@ -1615,7 +1615,10 @@ void QuadPlane::update_transition(void)
         }
 
         transition_low_airspeed_ms = now;
-        if (have_airspeed && aspeed > plane.aparm.airspeed_min && !assisted_flight) {
+        
+        int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
+        
+        if (have_airspeed && aspeed > plane.aparm.airspeed_min + (fuel_comp_arspd_cm + 50 / 100) && !assisted_flight) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }

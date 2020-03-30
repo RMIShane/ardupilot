@@ -47,6 +47,24 @@ const AP_Param::GroupInfo AP_EFI::var_info[] = {
     // @User: Advanced
     // @RebootRequired: False
     AP_GROUPINFO("_COEF2", 3, AP_EFI, coef2, 0),
+    
+    // @Param: ARSPD_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("_FUEL_COMP_ARSPD", 4, AP_EFI, fuel_comp_arspd, 0),
+    
+    // @Param: _CLIMB_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("_FUEL_COMP_CLIMB", 5, AP_EFI, fuel_comp_climb, 0),
 
     AP_GROUPEND
 };

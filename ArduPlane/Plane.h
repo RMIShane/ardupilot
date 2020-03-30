@@ -593,9 +593,6 @@ private:
     // a smoothed airspeed estimate, used for limiting roll angle
     float smoothed_airspeed;
     
-    // amount added to minimum airspeed to compensate for fuel load
-    float fuel_comp = 0.0f;
-    
     // SuperVolo Temp
     uint32_t roll_limit_message;
     

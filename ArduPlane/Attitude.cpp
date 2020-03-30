@@ -1,5 +1,4 @@
 #include "Plane.h"
-#include <AP_EFI/AP_EFI.h>
 
 /*
   get a speed scaling number for control surfaces. This is applied to
@@ -18,14 +17,17 @@ float Plane::get_speed_scaler(void)
         } else {
             speed_scaler = 2.0;
         }
+        
         // ensure we have scaling over the full configured airspeed
-        float scale_min = MIN(0.5, (0.5 * aparm.airspeed_min) / g.scaling_speed);
+        int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
+        
+        float scale_min = MIN(0.5, (0.5 * (aparm.airspeed_min + (fuel_comp_arspd_cm / 100))) / g.scaling_speed);
         float scale_max = MAX(2.0, (1.5 * aparm.airspeed_max) / g.scaling_speed);
         speed_scaler = constrain_float(speed_scaler, scale_min, scale_max);
 
         if (quadplane.in_vtol_mode() && hal.util->get_soft_armed()) {
             // when in VTOL modes limit surface movement at low speed to prevent instability
-            float threshold = aparm.airspeed_min * 0.5;
+            float threshold = (aparm.airspeed_min + (fuel_comp_arspd_cm / 100)) * 0.5;
             if (aspeed < threshold) {
                 float new_scaler = linear_interpolate(0, g.scaling_speed / threshold, aspeed, 0, threshold);
                 speed_scaler = MIN(speed_scaler, new_scaler);
@@ -617,6 +619,7 @@ void Plane::adjust_nav_pitch_throttle(void)
  */
 void Plane::update_load_factor(void)
 {  
+        
     float demanded_roll = fabsf(nav_roll_cd*0.01f);
     if (demanded_roll > 85) {
         // limit to 85 degrees to prevent numerical errors
@@ -644,24 +647,25 @@ void Plane::update_load_factor(void)
         return;
     } else {
         
-         //Composite Roll Limiter
+         // Composite Roll Limiter     
+         int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
          
-         fuel_comp = 0; //How do I either access fuel level here or modify this varible in ECU_lite or Battery_monitor where fuel level is avaliable?
-
-         float airspeed_component = (aparm.airspeed_cruise_cm + (fuel_comp * 100.0f) - (smoothed_airspeed * 100.0f)) / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100.0f)); 
+         float airspeed_component = (aparm.airspeed_cruise_cm + fuel_comp_arspd_cm - (smoothed_airspeed * 100.0f)) / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100.0f)); 
          if (airspeed_component < -1.0){
-             airspeed_component = -1;
+             airspeed_component = -1.0;
          }     
          else if (airspeed_component > 1.0){
-             airspeed_component = 1;
+             airspeed_component = 1.0;
          }
+         
+         //float pitch_fuel_sub_component = (fuel_comp_arspd_cm / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100))) + 1;
          
          float pitch_component = ((ahrs.pitch * 5725.58f) - plane.g.pitch_trim_cd) / aparm.pitch_limit_max_cd;        
          if (pitch_component < -1.0){
-             pitch_component = -1;
+             pitch_component = -1.0;
          }     
          else if (pitch_component > 1.0){
-             pitch_component = 1;
+             pitch_component = 1.0;
          }
         
          int32_t roll_limit_composite = aparm.roll_limit_cd - ((airspeed_component + pitch_component) * (aparm.roll_limit_cd - 2500.0f));
@@ -678,6 +682,7 @@ void Plane::update_load_factor(void)
         // Debug
         const uint32_t now = AP_HAL::millis();
         int16_t roll_limit_ms = roll_limit_cd;
+        float fuel_comp_climb = plane.g2.efi.get_fuel_comp_climb();
         //int16_t pitch_ms = ((ahrs.pitch * 5725.58f) - plane.g.pitch_trim_cd);  
      
         if ((now - roll_limit_message) > 1000) {
@@ -687,7 +692,9 @@ void Plane::update_load_factor(void)
             //gcs().send_text(MAV_SEVERITY_INFO, "Pitch: %d", pitch_ms);
             //gcs().send_text(MAV_SEVERITY_INFO, "PC: %f", pitch_component);
             gcs().send_text(MAV_SEVERITY_INFO, "Roll Limit: %d", roll_limit_ms);
-            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp: %f", fuel_comp);      
+            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp: %ld", fuel_comp_arspd_cm);
+            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp: %f", fuel_comp_climb);
+                  
         }
     }
 }

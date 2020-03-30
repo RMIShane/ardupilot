@@ -86,8 +86,14 @@ void AP_EFI_ECU_Lite::check_status()
         //gcs().send_text(MAV_SEVERITY_INFO, "MAH: %f",_latest.mah);
         
         if (_latest.error_state == 1){
-              gcs().send_text(MAV_SEVERITY_INFO, "BATTERIES DISCONNECTED");
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "POWER BUS ANOMALY");
         }
+        
+        if (_latest.error_state == 2 && _send_error_state_message) {
+            _send_engine_time_message = false;
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "BUS STABILIZED");
+        }    
+        
 
         // Engine Time (send once per engine cycle)
         if (_latest.rpm < 1 && _send_engine_time_message) {
