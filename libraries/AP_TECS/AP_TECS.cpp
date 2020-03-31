@@ -464,7 +464,12 @@ void AP_TECS::_update_height_demand(void)
     }
     
     // Limit height rate of change    
-    float fuel_comp_climb = AP::EFI()->get_fuel_comp_climb();
+      
+    //Fuel Comp
+    float fuel_comp_climb = 0.0f;   
+    #if EFI_ENABLED
+    fuel_comp_climb = (AP::EFI()->get_tank_pct() * 2.0f / 100.0f);
+    #endif
     
     if ((_hgt_dem - _hgt_dem_prev) > ((_maxClimbRate - fuel_comp_climb) * 0.1f))
     {
@@ -953,8 +958,12 @@ void AP_TECS::_update_STE_rate_lim(void)
 {
     // Calculate Specific Total Energy Rate Limits
     // This is a trivial calculation at the moment but will get bigger once we start adding altitude effects
-    
-    float fuel_comp_climb = AP::EFI()->get_fuel_comp_climb();
+   
+    //Fuel Comp
+    float fuel_comp_climb = 0.0f;   
+    #if EFI_ENABLED
+    fuel_comp_climb = (AP::EFI()->get_tank_pct() * 2.0f / 100.0f);
+    #endif
      
     _STEdot_max = (_maxClimbRate - fuel_comp_climb) * GRAVITY_MSS;
     _STEdot_min = - (_minSinkRate - fuel_comp_climb) * GRAVITY_MSS;

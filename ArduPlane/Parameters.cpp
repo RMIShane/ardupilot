@@ -1247,6 +1247,24 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(efi, "EFI", 22, ParametersG2, AP_EFI),
 #endif
 
+    // @Param: ARSPD_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("FUEL_COMP_ARSPD", 23, ParametersG2, fuel_comp_arspd, 0),
+    
+    // @Param: _CLIMB_FUEL_COMP
+    // @DisplayName: Air Speed Fuel Comp
+    // @Description: Amount to subtract from TECS_CLMB_MAX to compensatte for weight of full fuel load.
+    // @Range: 0 10
+    // @Units: m/s
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("FUEL_COMP_CLIMB", 24, ParametersG2, fuel_comp_climb, 0),
+
     AP_GROUPEND
 };
 

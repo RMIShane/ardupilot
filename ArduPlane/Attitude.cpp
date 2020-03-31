@@ -19,7 +19,12 @@ float Plane::get_speed_scaler(void)
         }
         
         // ensure we have scaling over the full configured airspeed
-        int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
+        
+        //Fuel Comp
+        int32_t fuel_comp_arspd_cm = 0;
+        #if EFI_ENABLED
+        fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+        #endif
         
         float scale_min = MIN(0.5, (0.5 * (aparm.airspeed_min + (fuel_comp_arspd_cm / 100))) / g.scaling_speed);
         float scale_max = MAX(2.0, (1.5 * aparm.airspeed_max) / g.scaling_speed);
@@ -648,7 +653,15 @@ void Plane::update_load_factor(void)
     } else {
         
          // Composite Roll Limiter     
-         int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
+         
+         //Fuel Comp
+         int32_t fuel_comp_arspd_cm = 0;
+         float fuel_comp_climb = 0.0f;
+         #if EFI_ENABLED
+         fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+         fuel_comp_climb = plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_climb / 100.0f;
+         //fuel_comp_climb = (AP::EFI()->get_tank_pct() * AP::EFI()->fuel_comp_arspd / 100.0f);
+         #endif
          
          float airspeed_component = (aparm.airspeed_cruise_cm + fuel_comp_arspd_cm - (smoothed_airspeed * 100.0f)) / (aparm.airspeed_cruise_cm - (aparm.airspeed_min * 100.0f)); 
          if (airspeed_component < -1.0){
@@ -682,8 +695,8 @@ void Plane::update_load_factor(void)
         // Debug
         const uint32_t now = AP_HAL::millis();
         int16_t roll_limit_ms = roll_limit_cd;
-        float fuel_comp_climb = plane.g2.efi.get_fuel_comp_climb();
-        //int16_t pitch_ms = ((ahrs.pitch * 5725.58f) - plane.g.pitch_trim_cd);  
+        
+        
      
         if ((now - roll_limit_message) > 1000) {
             roll_limit_message = now;         
@@ -692,8 +705,8 @@ void Plane::update_load_factor(void)
             //gcs().send_text(MAV_SEVERITY_INFO, "Pitch: %d", pitch_ms);
             //gcs().send_text(MAV_SEVERITY_INFO, "PC: %f", pitch_component);
             gcs().send_text(MAV_SEVERITY_INFO, "Roll Limit: %d", roll_limit_ms);
-            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp: %ld", fuel_comp_arspd_cm);
-            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp: %f", fuel_comp_climb);
+            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp Arspd: %ld", fuel_comp_arspd_cm);
+            gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp Climb: %f", fuel_comp_climb);
                   
         }
     }

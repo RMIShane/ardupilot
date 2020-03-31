@@ -1616,12 +1616,17 @@ void QuadPlane::update_transition(void)
 
         transition_low_airspeed_ms = now;
         
-        int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
+        //Fuel Comp
+        int32_t fuel_comp_arspd_cm = 0;
+        #if EFI_ENABLED
+        fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+        #endif
         
-        if (have_airspeed && aspeed > plane.aparm.airspeed_min + (fuel_comp_arspd_cm + 50 / 100) && !assisted_flight) {
+        if (have_airspeed && aspeed > plane.aparm.airspeed_min + ((fuel_comp_arspd_cm + 50) / 100) && !assisted_flight) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }
+          
         assisted_flight = true;
 
         // do not allow a climb on the quad motors during transition

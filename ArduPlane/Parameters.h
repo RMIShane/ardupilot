@@ -571,6 +571,10 @@ public:
     AP_EFI efi;
 #endif
 
+    //Fuel Comp    
+    AP_Int16 fuel_comp_arspd;
+    AP_Float fuel_comp_climb;
+
 };
 
 extern const AP_Param::Info var_info[];

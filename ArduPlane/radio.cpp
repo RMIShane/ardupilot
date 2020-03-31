@@ -213,7 +213,13 @@ void Plane::read_radio()
         
     } else if (g.throttle_nudge && SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) < 50 && geofence_stickmixing()) {
         float nudge = (50 - SRV_Channels::get_output_scaled(SRV_Channel::k_throttle)) * -0.02f;
-        int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();     
+        
+        //Fuel Comp
+        int32_t fuel_comp_arspd_cm = 0;     
+        #if EFI_ENABLED   
+        fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+        #endif
+        
         if (ahrs.airspeed_sensor_enabled()) {
             airspeed_nudge_cm = (aparm.airspeed_cruise_cm - ((aparm.airspeed_min * 100) + fuel_comp_arspd_cm)) * nudge;
         } else {

@@ -174,7 +174,13 @@ void Plane::calc_airspeed_errors()
     }
 
     // Apply airspeed clamping
-    int32_t fuel_comp_arspd_cm = plane.g2.efi.get_fuel_comp_arspd_cm();
+    
+    //Fuel Comp
+    int32_t fuel_comp_arspd_cm = 0;
+    #if EFI_ENABLED
+    fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+    #endif
+    
     if (target_airspeed_cm > (aparm.airspeed_max * 100))
         target_airspeed_cm = (aparm.airspeed_max * 100);
     else if (target_airspeed_cm < (aparm.airspeed_min * 100) + fuel_comp_arspd_cm){
