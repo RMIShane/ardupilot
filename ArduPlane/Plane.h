@@ -595,6 +595,8 @@ private:
     
     // SuperVolo Temp
     uint32_t roll_limit_message;
+    uint32_t targ_spd_message;
+    float ts_message_last;  
     
     // Mission library
     AP_Mission mission{

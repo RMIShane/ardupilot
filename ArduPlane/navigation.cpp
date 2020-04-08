@@ -172,20 +172,34 @@ void Plane::calc_airspeed_errors()
     if (throttle_allows_nudging) {
         target_airspeed_cm += airspeed_nudge_cm;
     }
+    
+    //SuperVolo
+    //Throttle nudge message in MPH
+    const uint32_t now = AP_HAL::millis();
+    
+    if ((now - targ_spd_message) > 1000) {
+        targ_spd_message = now;
+        if (target_airspeed_cm > ts_message_last + 25 || target_airspeed_cm < ts_message_last - 25) {
+            ts_message_last = target_airspeed_cm;     
+            gcs().send_text(MAV_SEVERITY_INFO, "Target Arspd MPH: %.1f", (double)(ts_message_last * .02236f));
+        }
+    }    
 
     // Apply airspeed clamping
     
     //Fuel Comp
     int32_t fuel_comp_arspd_cm = 0;
     #if EFI_ENABLED
-    fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+    fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd);
     #endif
     
     if (target_airspeed_cm > (aparm.airspeed_max * 100))
         target_airspeed_cm = (aparm.airspeed_max * 100);
+    
     else if (target_airspeed_cm < (aparm.airspeed_min * 100) + fuel_comp_arspd_cm){
         target_airspeed_cm = (aparm.airspeed_min * 100) + fuel_comp_arspd_cm;
-    }    
+    }
+        
 
     // use the TECS view of the target airspeed for reporting, to take
     // account of the landing speed

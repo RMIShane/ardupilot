@@ -3,7 +3,6 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Baro/AP_Baro.h>
 #include <AP_Logger/AP_Logger.h>
-#include <AP_EFI/AP_EFI.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -468,7 +467,7 @@ void AP_TECS::_update_height_demand(void)
     //Fuel Comp
     float fuel_comp_climb = 0.0f;   
     #if EFI_ENABLED
-    fuel_comp_climb = (AP::EFI()->get_tank_pct() * 2.0f / 100.0f);
+    fuel_comp_climb = (AP::EFI()->get_tank_pct() * AP::EFI()->fuel_comp_climb / 100.0f);
     #endif
     
     if ((_hgt_dem - _hgt_dem_prev) > ((_maxClimbRate - fuel_comp_climb) * 0.1f))

@@ -203,33 +203,67 @@ void Plane::read_radio()
     control_failsafe();
     
     // throttle nudging
-    if (g.throttle_nudge && SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) > 50 && geofence_stickmixing()) {
-        float nudge = (SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) - 50) * 0.02f;
+    
+    //Fuel Comp
+    int32_t fuel_comp_arspd_cm = 0;     
+    #if EFI_ENABLED   
+    fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd);
+    #endif
+    
+    
+    if (g.throttle_nudge && channel_throttle->get_control_in() > 55 && geofence_stickmixing()) {
+        float nudge = (channel_throttle->get_control_in() - 55) * 0.02222f;
         if (ahrs.airspeed_sensor_enabled()) {
-            airspeed_nudge_cm = ((aparm.airspeed_max * 100) - aparm.airspeed_cruise_cm) * nudge;
+            airspeed_nudge_cm = (aparm.airspeed_max * 100 - aparm.airspeed_cruise_cm) * nudge;
         } else {
             throttle_nudge = (aparm.throttle_max - aparm.throttle_cruise) * nudge;
-        }
+        }  
+                     
+        //SuperVolo Dev
+        //const uint32_t now = AP_HAL::millis();
+    
+        //if ((now - nudge_message) > 5000) {
+        //    nudge_message = now;
         
-    } else if (g.throttle_nudge && SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) < 50 && geofence_stickmixing()) {
-        float nudge = (50 - SRV_Channels::get_output_scaled(SRV_Channel::k_throttle)) * -0.02f;
+        //    float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
         
-        //Fuel Comp
-        int32_t fuel_comp_arspd_cm = 0;     
-        #if EFI_ENABLED   
-        fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
-        #endif
+            //gcs().send_text(MAV_SEVERITY_INFO, "Thr: %f", throttle);
+            //gcs().send_text(MAV_SEVERITY_INFO, "Nudge: %f", nudge);         
+        //    gcs().send_text(MAV_SEVERITY_INFO, "Arspd: %d", airspeed_nudge_cm);
+        //} 
         
+    //Allows negative nudge = to 75% of the differance between cruise and minimum airspeed.     
+    } else if (g.throttle_nudge && channel_throttle->get_control_in() < 45 && geofence_stickmixing()) {
+        float nudge = (45 - channel_throttle->get_control_in()) * -0.01666f;
+
+       
         if (ahrs.airspeed_sensor_enabled()) {
             airspeed_nudge_cm = (aparm.airspeed_cruise_cm - ((aparm.airspeed_min * 100) + fuel_comp_arspd_cm)) * nudge;
         } else {
             throttle_nudge = (aparm.throttle_cruise - aparm.throttle_min) * nudge;
-        }         
+        }
+        
+        //SuperVolo Dev
+        //const uint32_t now = AP_HAL::millis();
+    
+        //if ((now - nudge_message) > 1000) {
+        //    nudge_message = now;
+            
+        
+        //    float throttle = SRV_Channels::get_output_scaled(SRV_Channel::k_throttle);
+        
+            //gcs().send_text(MAV_SEVERITY_INFO, "Thr: %f", throttle);
+            //gcs().send_text(MAV_SEVERITY_INFO, "Nudge: %f", nudge);        
+            //gcs().send_text(MAV_SEVERITY_INFO, "Arspd: %d", airspeed_nudge_cm);            
+        //}    
+                 
         
     } else {
         airspeed_nudge_cm = 0;
         throttle_nudge = 0;
-    }    
+    }
+    
+    
     
 
     rudder_arm_disarm_check();

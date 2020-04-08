@@ -1429,14 +1429,20 @@ bool QuadPlane::assistance_needed(float aspeed)
         angle_error_start_ms = 0;
         return false;
     }
-
-    if (aspeed < assist_speed) {
+    
+    //Fuel Comp
+    float fuel_comp_arspd = 0;
+    #if EFI_ENABLED
+    fuel_comp_arspd = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd) / 100.0f;
+    #endif
+    
+    if (aspeed < assist_speed + (fuel_comp_arspd / 2.0f)) {  // only add half of airspeed comp to Q-Assist Speed 
         // assistance due to Q_ASSIST_SPEED
         in_angle_assist = false;
         angle_error_start_ms = 0;
         return true;
-    }
-
+    }   
+    
     const uint32_t now = AP_HAL::millis();
 
     /*
@@ -1617,12 +1623,14 @@ void QuadPlane::update_transition(void)
         transition_low_airspeed_ms = now;
         
         //Fuel Comp
-        int32_t fuel_comp_arspd_cm = 0;
+        float fuel_comp_arspd = 0;
         #if EFI_ENABLED
-        fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.fuel_comp_arspd);
+        fuel_comp_arspd = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd) / 100.0f;
         #endif
         
-        if (have_airspeed && aspeed > plane.aparm.airspeed_min + ((fuel_comp_arspd_cm + 50) / 100) && !assisted_flight) {
+        //SuperVolo
+        //Reduced transition speed by 10% to try to avoid pitch up.  
+        if (have_airspeed && aspeed > plane.g2.transition_speed + fuel_comp_arspd && !assisted_flight) {  // only add half of airspeed comp to Transition Speed
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }

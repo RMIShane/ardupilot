@@ -1247,23 +1247,41 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(efi, "EFI", 22, ParametersG2, AP_EFI),
 #endif
 
-    // @Param: ARSPD_FUEL_COMP
-    // @DisplayName: Air Speed Fuel Comp
-    // @Description: Amount to add to minimum airspeed to compensatte for weight of full fuel load.
-    // @Range: 0 10
-    // @Units: m/s
+    // @Param: RL_LIM_AS_MIN
+    // @DisplayName: Roll limit at minimum airspeed
+    // @Description: The roll limit at minimum airspeed when the plane is flying level
+    // @Range: 2000 4000
+    // @Units: %
     // @Increment: 1
-    // @User: Standard
-    AP_GROUPINFO("FUEL_COMP_ARSPD", 23, ParametersG2, fuel_comp_arspd, 0),
+    // @User: Advanced
+    AP_GROUPINFO("RL_LIM_AS_MIN", 23, ParametersG2, rl_lim_aspd_min, 3000),
     
-    // @Param: _CLIMB_FUEL_COMP
-    // @DisplayName: Air Speed Fuel Comp
-    // @Description: Amount to subtract from TECS_CLMB_MAX to compensatte for weight of full fuel load.
-    // @Range: 0 10
-    // @Units: m/s
+    // @Param: RL_RD_PITCH_UP
+    // @DisplayName: Roll limit reduction per degree of pitch up
+    // @Description: The amount in degrees the roll limit is reduced per degree of the aircraft pitches up
+    // @Range: 0 3
+    // @Units: %
+    // @Increment: .01
+    // @User: Advanced
+    AP_GROUPINFO("RL_RD_PITCH_UP", 24, ParametersG2, rl_rd_pitch_up, 1.5),
+    
+    // @Param: RL_LIM_DEV
+    // @DisplayName: Turn on roll limit messaging
+    // @Description: Turn on roll limit messaging
+    // @Range: 0 1
+    // @Units: %
     // @Increment: 1
-    // @User: Standard
-    AP_GROUPINFO("FUEL_COMP_CLIMB", 24, ParametersG2, fuel_comp_climb, 0),
+    // @User: Advanced
+    AP_GROUPINFO("RL_LIM_DEV", 25, ParametersG2, rl_lim_dev, 0),
+    
+    // @Param: TRANSITION_SPEED
+    // @DisplayName: Speed that quads will start to blend off
+    // @Description: Speed that quads will start to blend off
+    // @Range: 0 1
+    // @Units: %
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("TRANSITION_SPEED", 26, ParametersG2, transition_speed, 14),
 
     AP_GROUPEND
 };
