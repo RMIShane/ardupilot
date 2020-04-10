@@ -483,6 +483,15 @@ const AP_Param::GroupInfo QuadPlane::var_info2[] = {
     // @Range: 0.1 1
     // @User: Standard
     AP_GROUPINFO("TAILSIT_GSCMIN", 18, QuadPlane, tailsitter.gain_scaling_min, 0.4),
+    
+    // @Param: TRANSITION_SPD
+    // @DisplayName: Airspeed at whitch quad motors will start to dimish.
+    // @Description: This should be 50 - 75 percent of FBWA_MIN_ARSPD
+    // @Units: m/s
+    // @Range: 0 25
+    // @User: Standard
+    AP_GROUPINFO("TRANSITION_SPD", 19, QuadPlane, transition_speed, 0),
+    
 
     AP_GROUPEND
 };
@@ -1629,8 +1638,7 @@ void QuadPlane::update_transition(void)
         #endif
         
         //SuperVolo
-        //Reduced transition speed by 10% to try to avoid pitch up.  
-        if (have_airspeed && aspeed > plane.g2.transition_speed + fuel_comp_arspd && !assisted_flight) {  // only add half of airspeed comp to Transition Speed
+        if (have_airspeed && aspeed > transition_speed + fuel_comp_arspd && !assisted_flight) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }
@@ -1667,39 +1675,94 @@ void QuadPlane::update_transition(void)
         
     case TRANSITION_TIMER: {
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
-        // after airspeed is reached we degrade throttle over the
-        // transition time, but continue to stabilize
-        const uint32_t transition_timer_ms = now - transition_low_airspeed_ms;
-        if (transition_timer_ms > (unsigned)transition_time_ms) {
-            transition_state = TRANSITION_DONE;
-            transition_start_ms = 0;
-            transition_low_airspeed_ms = 0;
-            gcs().send_text(MAV_SEVERITY_INFO, "Transition done");
-        }
-        float trans_time_ms = (float)transition_time_ms.get();
-        float transition_scale = (trans_time_ms - transition_timer_ms) / trans_time_ms;
-        float throttle_scaled = last_throttle * transition_scale;
+        
+        if (transition_speed > 0 && transition_speed < plane.aparm.airspeed_min){
+            // after TRANSITION_SPD is reached we degrade throttle until flying at FBWA_MIN_ARSPD
+            
+            //Fuel Comp
+            float fuel_comp_arspd = 0;
+            #if EFI_ENABLED
+            fuel_comp_arspd = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd) / 100.0f;
+            #endif
+            
+            if (have_airspeed && aspeed > plane.aparm.airspeed_min + fuel_comp_arspd && !assisted_flight) {
+                transition_state = TRANSITION_DONE;
+                transition_start_ms = 0;
+                transition_low_airspeed_ms = 0;
+                gcs().send_text(MAV_SEVERITY_INFO, "Transition done");
+            }      
+            float transition_scale = ((float)plane.aparm.airspeed_min + fuel_comp_arspd - aspeed) / (plane.aparm.airspeed_min + fuel_comp_arspd - transition_speed);
+            float throttle_scaled = last_throttle * transition_scale;
+            
+            //dev messaging
+            if ((now - transition_message) > 500) {
+                transition_message = now;       
+                gcs().send_text(MAV_SEVERITY_INFO, "ASpeed: %f", aspeed);
+                gcs().send_text(MAV_SEVERITY_INFO, "Scale: %f", transition_scale);        
+            }
+            
+            // set zero throttle mix, to give full authority to
+            // throttle. This ensures that the fixed wing controllers get
+            // a chance to learn the right integrators during the transition
+            attitude_control->set_throttle_mix_value(0.5*transition_scale);
+            
+            
+            // if airspeed droops do not scale throttle to greater than 1
+            if (throttle_scaled > 1.0) {
+                throttle_scaled = 1.0;
+            }
+            else if (throttle_scaled < 0.01) {
+                // ensure we don't drop all the way to zero or the motors
+                // will stop stabilizing
+                throttle_scaled = 0.01;
+            }
+            assisted_flight = true;
+            hold_stabilize(throttle_scaled);
+            
+            // set desired yaw to current yaw in both desired angle and
+            // rate request while waiting for transition to
+            // complete. Navigation should be controlled by fixed wing
+            // control surfaces at this stage
+            attitude_control->set_yaw_target_to_current_heading();
+            attitude_control->rate_bf_yaw_target(ahrs.get_gyro().z);
+            break;      
+        } 
+         
+        else {
+            // after airspeed is reached we degrade throttle over the
+            // transition time, but continue to stabilize
+            const uint32_t transition_timer_ms = now - transition_low_airspeed_ms;
+            if (transition_timer_ms > (unsigned)transition_time_ms) {
+                transition_state = TRANSITION_DONE;
+                transition_start_ms = 0;
+                transition_low_airspeed_ms = 0;
+                gcs().send_text(MAV_SEVERITY_INFO, "Transition done");
+            }
+            float trans_time_ms = (float)transition_time_ms.get();
+            float transition_scale = (trans_time_ms - transition_timer_ms) / trans_time_ms;
+            float throttle_scaled = last_throttle * transition_scale;
 
-        // set zero throttle mix, to give full authority to
-        // throttle. This ensures that the fixed wing controllers get
-        // a chance to learn the right integrators during the transition
-        attitude_control->set_throttle_mix_value(0.5*transition_scale);
+            // set zero throttle mix, to give full authority to
+            // throttle. This ensures that the fixed wing controllers get
+            // a chance to learn the right integrators during the transition
+            attitude_control->set_throttle_mix_value(0.5*transition_scale);
 
-        if (throttle_scaled < 0.01) {
-            // ensure we don't drop all the way to zero or the motors
-            // will stop stabilizing
-            throttle_scaled = 0.01;
-        }
-        assisted_flight = true;
-        hold_stabilize(throttle_scaled);
+            if (throttle_scaled < 0.01) {
+                // ensure we don't drop all the way to zero or the motors
+                // will stop stabilizing
+                throttle_scaled = 0.01;
+            }
+            assisted_flight = true;
+            hold_stabilize(throttle_scaled);
 
-        // set desired yaw to current yaw in both desired angle and
-        // rate request while waiting for transition to
-        // complete. Navigation should be controlled by fixed wing
-        // control surfaces at this stage
-        attitude_control->set_yaw_target_to_current_heading();
-        attitude_control->rate_bf_yaw_target(ahrs.get_gyro().z);
-        break;
+            // set desired yaw to current yaw in both desired angle and
+            // rate request while waiting for transition to
+            // complete. Navigation should be controlled by fixed wing
+            // control surfaces at this stage
+            attitude_control->set_yaw_target_to_current_heading();
+            attitude_control->rate_bf_yaw_target(ahrs.get_gyro().z);
+            break;
+        }    
     }
 
     case TRANSITION_ANGLE_WAIT_FW: {

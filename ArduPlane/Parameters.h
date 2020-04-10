@@ -575,7 +575,6 @@ public:
     AP_Int32 rl_lim_aspd_min;
     AP_Float rl_rd_pitch_up;
     AP_Int8 rl_lim_dev;
-    AP_Float transition_speed;
 
 };
 

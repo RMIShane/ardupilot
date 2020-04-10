@@ -1273,15 +1273,6 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Increment: 1
     // @User: Advanced
     AP_GROUPINFO("RL_LIM_DEV", 25, ParametersG2, rl_lim_dev, 0),
-    
-    // @Param: TRANSITION_SPEED
-    // @DisplayName: Speed that quads will start to blend off
-    // @Description: Speed that quads will start to blend off
-    // @Range: 0 1
-    // @Units: %
-    // @Increment: 1
-    // @User: Advanced
-    AP_GROUPINFO("TRANSITION_SPEED", 26, ParametersG2, transition_speed, 14),
 
     AP_GROUPEND
 };

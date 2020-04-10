@@ -328,6 +328,9 @@ private:
 
     // time we last got an EKF yaw reset
     uint32_t ekfYawReset_ms;
+    
+    // SuperVolo Dev
+    uint32_t transition_message;
 
     struct {
         AP_Float gain;
@@ -348,6 +351,9 @@ private:
     // timer start for transition
     uint32_t transition_start_ms;
     uint32_t transition_low_airspeed_ms;
+    
+    // trasition speed
+    AP_Int8 transition_speed;
 
     Location last_auto_target;
 
