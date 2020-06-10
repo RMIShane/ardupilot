@@ -1450,7 +1450,7 @@ bool QuadPlane::assistance_needed(float aspeed)
         in_angle_assist = false;
         angle_error_start_ms = 0;
         return true;
-    }   
+    }
     
     const uint32_t now = AP_HAL::millis();
 
@@ -1571,14 +1571,72 @@ void QuadPlane::update_transition(void)
          plane.get_throttle_input()>0 ||
          plane.is_flying())) {
         // the quad should provide some assistance to the plane
-        if (transition_state != TRANSITION_AIRSPEED_WAIT) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Transition started airspeed %.1f", (double)aspeed);
+        
+        
+        //SuperVolo
+        if (transition_speed > 0 && transition_speed < plane.aparm.airspeed_min){
+             
+            //Fuel Comp
+            float fuel_comp_arspd = 0;
+            #if EFI_ENABLED
+            fuel_comp_arspd = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd) / 100.0f;
+            #endif
+        
+            //Transition Speed
+            float transition_speed_current = 0;                         
+            transition_speed_current = transition_speed + (fuel_comp_arspd / 2.0f);
+        
+            if (have_airspeed && aspeed < transition_speed_current){
+            
+                if (transition_state != TRANSITION_AIRSPEED_WAIT) {
+                    gcs().send_text(MAV_SEVERITY_INFO, "Transition started airspeed %.1f", (double)aspeed);
+                }   
+                transition_state = TRANSITION_AIRSPEED_WAIT;
+                if (transition_start_ms == 0) {
+                    transition_start_ms = now;
+                }
+                assisted_flight = true;
+            }
+            
+            else if (have_airspeed && aspeed > transition_speed_current && aspeed < assist_speed + (fuel_comp_arspd / 2.0f)){
+                
+                if (transition_state != TRANSITION_TIMER) {
+                    gcs().send_text(MAV_SEVERITY_INFO, "Q Assist Speed %.1f", (double)aspeed);
+                }   
+                transition_state = TRANSITION_TIMER;
+                if (transition_start_ms == 0) {
+                    transition_start_ms = now;
+                }
+                assisted_flight = true;
+            }
+            
+            else {
+                if (transition_state != TRANSITION_AIRSPEED_WAIT) {
+                gcs().send_text(MAV_SEVERITY_INFO, "Transition started airspeed %.1f", (double)aspeed);
+                }   
+                transition_state = TRANSITION_AIRSPEED_WAIT;
+                if (transition_start_ms == 0) {
+                    transition_start_ms = now;
+                }
+                assisted_flight = true;
+            }  
         }
-        transition_state = TRANSITION_AIRSPEED_WAIT;
-        if (transition_start_ms == 0) {
-            transition_start_ms = now;
+        
+        
+        //Orriginal Code
+        else {
+        
+            if (transition_state != TRANSITION_AIRSPEED_WAIT) {
+                gcs().send_text(MAV_SEVERITY_INFO, "Transition started airspeed %.1f", (double)aspeed);
+            }   
+            transition_state = TRANSITION_AIRSPEED_WAIT;
+            if (transition_start_ms == 0) {
+                transition_start_ms = now;
+            }
+            assisted_flight = true;
+        
         }
-        assisted_flight = true;
+        
     } else {
         assisted_flight = false;
     }
@@ -1638,9 +1696,26 @@ void QuadPlane::update_transition(void)
         #endif
         
         //SuperVolo
-        if (have_airspeed && aspeed > transition_speed + fuel_comp_arspd && !assisted_flight) {
+        float transition_speed_current = 0;      
+        if (transition_speed > 0 && transition_speed < plane.aparm.airspeed_min){                   
+            transition_speed_current = transition_speed + (fuel_comp_arspd / 2.0f);
+        } 
+        
+        else {
+            transition_speed_current = plane.aparm.airspeed_min;
+        }
+        
+                  
+        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
+        }
+        
+        //dev messaging
+        if ((now - transition_message) > 500 && plane.g2.rl_lim_dev == 1) {
+            transition_message = now;
+            float dev_message = transition_speed_current + fuel_comp_arspd;    
+            gcs().send_text(MAV_SEVERITY_INFO, "TS: %.1f", dev_message);     
         }
           
         assisted_flight = true;
@@ -1690,15 +1765,23 @@ void QuadPlane::update_transition(void)
                 transition_start_ms = 0;
                 transition_low_airspeed_ms = 0;
                 gcs().send_text(MAV_SEVERITY_INFO, "Transition done");
-            }      
-            float transition_scale = ((float)plane.aparm.airspeed_min + fuel_comp_arspd - aspeed) / (plane.aparm.airspeed_min + fuel_comp_arspd - transition_speed);
+            }   
+            
+            float transition_scale = ((float)plane.aparm.airspeed_min + fuel_comp_arspd - aspeed) / (plane.aparm.airspeed_min + fuel_comp_arspd - transition_speed + (fuel_comp_arspd / 2.0f));
             float throttle_scaled = last_throttle * transition_scale;
             
             //dev messaging
-            if ((now - transition_message) > 500) {
+            if ((now - transition_message) > 00 && plane.g2.rl_lim_dev == 1) {
                 transition_message = now;       
-                gcs().send_text(MAV_SEVERITY_INFO, "ASpeed: %f", aspeed);
-                gcs().send_text(MAV_SEVERITY_INFO, "Scale: %f", transition_scale);        
+                gcs().send_text(MAV_SEVERITY_INFO, "AS: %.1f SC: %.2f", aspeed, transition_scale);       
+            }
+            
+            // if airspeed drops do not scale throttle by greater than 1 or drop throttle to less than 10%
+            if (transition_scale > 1.0) {
+                transition_scale = 1.0;
+            }
+            else if (transition_scale < 0.01) {
+                transition_scale = 0.01;
             }
             
             // set zero throttle mix, to give full authority to
@@ -1706,16 +1789,6 @@ void QuadPlane::update_transition(void)
             // a chance to learn the right integrators during the transition
             attitude_control->set_throttle_mix_value(0.5*transition_scale);
             
-            
-            // if airspeed droops do not scale throttle to greater than 1
-            if (throttle_scaled > 1.0) {
-                throttle_scaled = 1.0;
-            }
-            else if (throttle_scaled < 0.01) {
-                // ensure we don't drop all the way to zero or the motors
-                // will stop stabilizing
-                throttle_scaled = 0.01;
-            }
             assisted_flight = true;
             hold_stabilize(throttle_scaled);
             
@@ -1741,6 +1814,12 @@ void QuadPlane::update_transition(void)
             float trans_time_ms = (float)transition_time_ms.get();
             float transition_scale = (trans_time_ms - transition_timer_ms) / trans_time_ms;
             float throttle_scaled = last_throttle * transition_scale;
+            
+            //dev messaging
+            if ((now - transition_message) > 500 && plane.g2.rl_lim_dev == 1) {
+                transition_message = now;       
+                gcs().send_text(MAV_SEVERITY_INFO, "AS: %.1f SC: %.2f", aspeed, transition_scale);        
+            }
 
             // set zero throttle mix, to give full authority to
             // throttle. This ensures that the fixed wing controllers get
