@@ -1439,6 +1439,8 @@ bool QuadPlane::assistance_needed(float aspeed)
         return false;
     }
     
+    //SuperVolo
+    
     //Fuel Comp
     float fuel_comp_arspd = 0;
     #if EFI_ENABLED
@@ -1799,8 +1801,9 @@ void QuadPlane::update_transition(void)
             attitude_control->set_yaw_target_to_current_heading();
             attitude_control->rate_bf_yaw_target(ahrs.get_gyro().z);
             break;      
-        } 
-         
+        }
+        
+        // Original Code
         else {
             // after airspeed is reached we degrade throttle over the
             // transition time, but continue to stabilize
@@ -1818,7 +1821,7 @@ void QuadPlane::update_transition(void)
             //dev messaging
             if ((now - transition_message) > 500 && plane.g2.rl_lim_dev == 1) {
                 transition_message = now;       
-                gcs().send_text(MAV_SEVERITY_INFO, "AS: %.1f SC: %.2f", aspeed, transition_scale);        
+                gcs().send_text(MAV_SEVERITY_INFO, "TM: %.1f SC: %.2f", trans_time_ms, transition_scale);        
             }
 
             // set zero throttle mix, to give full authority to

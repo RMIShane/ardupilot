@@ -335,9 +335,19 @@ void Plane::set_servos_manual_passthrough(void)
         // as it prevents the VTOL motors from running
         
         //SuperVolo allow engine to shutdown in vtol modes    
-        int8_t min_throttle;  
-        if (!quadplane.in_vtol_mode()) {
-            min_throttle = aparm.throttle_min.get();;
+        int8_t min_throttle;
+        int16_t ecu_error = 0;
+            
+        //Avoid engine shutdown during voltage annomaly
+        #if EFI_ENABLED
+        ecu_error = plane.g2.efi.get_ecu_error_state();  
+        #endif
+      
+        if (ecu_error == 1){
+            min_throttle = plane.g2.ecu_thr_hld;          
+        }
+        else if (!quadplane.in_vtol_mode()) {
+            min_throttle = aparm.throttle_min.get();
         }
         else {
             min_throttle = 0;
@@ -410,14 +420,35 @@ void Plane::set_servos_controlled(void)
 
     // convert 0 to 100% (or -100 to +100) into PWM
     
+    
     //SuperVolo allow engine to shutdown in vtol modes    
-    int8_t min_throttle;  
-    if (!quadplane.in_vtol_mode()) {
-       min_throttle = aparm.throttle_min.get();;
+    int8_t min_throttle;
+    int16_t ecu_error = 0;
+            
+    //Avoid engine shutdown during voltage annomaly
+    #if EFI_ENABLED
+    ecu_error = plane.g2.efi.get_ecu_error_state();  
+    #endif
+      
+    if (ecu_error == 1){
+        min_throttle = plane.g2.ecu_thr_hld;
+    }
+    else if (!quadplane.in_vtol_mode()) {
+        min_throttle = aparm.throttle_min.get();      
     }
     else {
-         min_throttle = 0;
+        min_throttle = 0;
     }
+    
+    //Dev Messaging
+    //uint32_t now = millis();
+    //if ((now - ecu_error_message) > 500 && plane.g2.rl_lim_dev == 1) {
+    //    ecu_error_message = now;
+    //    float dev_message = ecu_error;    
+    //    gcs().send_text(MAV_SEVERITY_INFO, "ER: %.1f", dev_message);
+    //    dev_message = min_throttle;    
+    //    gcs().send_text(MAV_SEVERITY_INFO, "MT: %.1f", dev_message);    
+    //}
     
     int8_t max_throttle = aparm.throttle_max.get();
 

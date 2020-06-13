@@ -1273,6 +1273,15 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Increment: 1
     // @User: Advanced
     AP_GROUPINFO("RL_LIM_DEV", 25, ParametersG2, rl_lim_dev, 0),
+    
+    // @Param: RL_LIM_DEV
+    // @DisplayName: Turn on roll limit messaging
+    // @Description: Turn on roll limit messaging
+    // @Range: 0 1
+    // @Units: %
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("ECU_THR_HLD", 26, ParametersG2, ecu_thr_hld, 10),
 
     AP_GROUPEND
 };

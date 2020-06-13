@@ -182,8 +182,11 @@ struct EFI_State {
     // This variable is reset when the engine is stopped.
     float estimated_consumed_fuel_volume_cm3;
 
-    // estimated percentage fuel remaining
+    // Estimated percentage fuel remaining
     float fuel_remaining_pct;
+    
+    // ECU Error State
+    int16_t ecu_error_state;
 
     // Throttle position (percent)
     uint8_t throttle_position_percent;

@@ -48,6 +48,7 @@ void AP_EFI_ECU_Lite::update()
             internal_state.engine_speed_rpm = _latest.rpm;
             internal_state.fuel_remaining_pct = _latest.fuel;
             internal_state.lifetime_run_time = _latest.engine_time;
+            internal_state.ecu_error_state = _latest.error_state;
 
             //Error State Throttle Hold
             //if (_latest.error_state == 1) {

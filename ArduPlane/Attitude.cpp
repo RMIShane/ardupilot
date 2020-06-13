@@ -676,8 +676,8 @@ void Plane::update_load_factor(void)
          //Calculate Roll Limit
          int32_t roll_limit_composite = aparm.roll_limit_cd - ((airspeed_component * (aparm.roll_limit_cd - plane.g2.rl_lim_aspd_min)) + pitch_component);
          
-         if (roll_limit_composite < 1000){
-             roll_limit_composite = 1000;
+         if (roll_limit_composite < 2000){
+             roll_limit_composite = 2000;
          }     
          else if (roll_limit_composite > aparm.roll_limit_cd){
              roll_limit_composite = aparm.roll_limit_cd;

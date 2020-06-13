@@ -83,6 +83,9 @@ public:
 
     // get fuel tank percentage
     float get_tank_pct() const { return state.fuel_remaining_pct; }
+    
+    // get ECU error state
+    int16_t get_ecu_error_state() const { return state.ecu_error_state; }
 
     // get battery info from backend if available
     bool get_battery(float &voltage, float &current, float &mah) const;

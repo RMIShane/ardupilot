@@ -575,6 +575,9 @@ public:
     AP_Int32 rl_lim_aspd_min;
     AP_Float rl_rd_pitch_up;
     AP_Int8 rl_lim_dev;
+    
+    //ECU Throttle Hold
+    AP_Int8 ecu_thr_hld;
 
 };
 
