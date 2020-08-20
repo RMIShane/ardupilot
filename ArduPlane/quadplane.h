@@ -579,6 +579,12 @@ private:
      */
     bool in_vtol_land_sequence(void) const;
     
+    // returns true if the vehicle should currently be doing a spiral landing
+    bool landing_with_fixed_wing_spiral_approach(void) const;
+    
+    // returns true if the vehicle should currently be doing a straight in landing
+    bool landing_with_fixed_wing_straight_approach(void) const;
+    
 public:
     void motor_test_output();
     MAV_RESULT mavlink_motor_test_start(mavlink_channel_t chan, uint8_t motor_seq, uint8_t throttle_type,

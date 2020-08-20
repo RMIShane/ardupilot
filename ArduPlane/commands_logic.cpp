@@ -91,14 +91,16 @@ bool Plane::start_command(const AP_Mission::Mission_Command& cmd)
         return quadplane.do_vtol_takeoff(cmd);
 
     case MAV_CMD_NAV_VTOL_LAND:
-        if (quadplane.options & QuadPlane::OPTION_MISSION_LAND_FW_APPROACH) {
+        if (quadplane.landing_with_fixed_wing_spiral_approach()) {
             // the user wants to approach the landing in a fixed wing flight mode
             // the waypoint will be used as a loiter_to_alt
             // after which point the plane will compute the optimal into the wind direction
             // and fly in on that direction towards the landing waypoint
             // it will then transition to VTOL and do a normal quadplane landing
-            do_landing_vtol_approach(cmd);
+            do_landing_vtol_spiral_approach(cmd);
             break;
+        } else if (quadplane.landing_with_fixed_wing_straight_approach()) {
+            return do_landing_vtol_straight_approach(cmd);    
         } else {
             return quadplane.do_vtol_land(cmd);
         }
@@ -264,9 +266,11 @@ bool Plane::verify_command(const AP_Mission::Mission_Command& cmd)        // Ret
         return quadplane.verify_vtol_takeoff(cmd);
 
     case MAV_CMD_NAV_VTOL_LAND:
-        if ((quadplane.options & QuadPlane::OPTION_MISSION_LAND_FW_APPROACH) && !verify_landing_vtol_approach(cmd)) {
+        if (quadplane.landing_with_fixed_wing_spiral_approach() && !verify_landing_vtol_spiral_approach(cmd)) {
             // verify_landing_vtol_approach will return true once we have completed the approach,
             // in which case we fall over to normal vtol landing code
+            return false;
+        } else if (quadplane.landing_with_fixed_wing_straight_approach() && !verify_landing_vtol_straight_approach(cmd)) {
             return false;
         } else {
             return quadplane.verify_vtol_land();
@@ -404,7 +408,7 @@ void Plane::do_land(const AP_Mission::Mission_Command& cmd)
 #endif
 }
 
-void Plane::do_landing_vtol_approach(const AP_Mission::Mission_Command& cmd)
+void Plane::do_landing_vtol_spiral_approach(const AP_Mission::Mission_Command& cmd)
 {
     //set target alt
     Location loc = cmd.content.location;
@@ -421,6 +425,16 @@ void Plane::do_landing_vtol_approach(const AP_Mission::Mission_Command& cmd)
     }
 
     vtol_approach_s.approach_stage = LOITER_TO_ALT;
+}
+
+bool Plane::do_landing_vtol_straight_approach(const AP_Mission::Mission_Command& cmd)
+{
+    do_nav_wp(cmd);
+    if (next_WP_loc.get_distance(current_loc) < quadplane.stopping_distance()) {
+        return quadplane.do_vtol_land(cmd);
+    }
+    vtol_approach_s.approach_stage = APPROACH_LINE;
+    return true;
 }
 
 void Plane::loiter_set_direction_wp(const AP_Mission::Mission_Command& cmd)
@@ -967,7 +981,7 @@ void Plane::exit_mission_callback()
     }
 }
 
-bool Plane::verify_landing_vtol_approach(const AP_Mission::Mission_Command &cmd)
+bool Plane::verify_landing_vtol_spiral_approach(const AP_Mission::Mission_Command &cmd)
 {
     switch (vtol_approach_s.approach_stage) {
         case LOITER_TO_ALT:
@@ -1058,6 +1072,22 @@ bool Plane::verify_landing_vtol_approach(const AP_Mission::Mission_Command &cmd)
 
     return false;
 }
+
+bool Plane::verify_landing_vtol_straight_approach(const AP_Mission::Mission_Command &cmd)
+{
+    if ((vtol_approach_s.approach_stage == APPROACH_LINE) &&
+        (quadplane.stopping_distance() < next_WP_loc.get_distance(current_loc))) {
+        verify_nav_wp(cmd);
+        return false;
+    }
+
+    if (vtol_approach_s.approach_stage == APPROACH_LINE) {
+        vtol_approach_s.approach_stage = VTOL_LANDING;
+        quadplane.do_vtol_land(cmd);
+    }
+    return true;
+}
+
 
 bool Plane::verify_loiter_heading(bool init)
 {

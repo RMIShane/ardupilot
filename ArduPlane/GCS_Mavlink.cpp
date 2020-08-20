@@ -873,7 +873,8 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
                 // shooting a quadplane approach
                 if ((!plane.quadplane.available()) ||
                     ((!plane.quadplane.in_vtol_auto()) &&
-                     (!(plane.quadplane.options & QuadPlane::OPTION_MISSION_LAND_FW_APPROACH)))) {
+                     ((!plane.quadplane.landing_with_fixed_wing_spiral_approach()) ||
+                      (!plane.quadplane.landing_with_fixed_wing_straight_approach())))) {
                     // Initiate an aborted landing. This will trigger a pitch-up and
                     // climb-out to a safe altitude holding heading then one of the
                     // following actions will occur, check for in this order:
@@ -1035,7 +1036,7 @@ void GCS_MAVLINK_Plane::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
-    // send a fence point to GCS
+    // send a fence point to GCS(!plane.quadplane.landing_with_fixed_wing_spiral_approach()))) {
     case MAVLINK_MSG_ID_FENCE_FETCH_POINT: {
         mavlink_fence_fetch_point_t packet;
         mavlink_msg_fence_fetch_point_decode(&msg, &packet);
