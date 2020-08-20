@@ -1028,7 +1028,8 @@ private:
         Failsafe_Action_Land      = 2,
         Failsafe_Action_Terminate = 3,
         Failsafe_Action_QLand     = 4,
-        Failsafe_Action_Parachute = 5
+        Failsafe_Action_Parachute = 5,
+        Failsafe_Action_QRTL      = 6
     };
 
     // list of priorities, highest priority first
@@ -1037,6 +1038,7 @@ private:
                                                       Failsafe_Action_Parachute,
                                                       Failsafe_Action_QLand,
                                                       Failsafe_Action_Land,
+                                                      Failsafe_Action_QRTL,
                                                       Failsafe_Action_RTL,
                                                       Failsafe_Action_None,
                                                       -1 // the priority list must end with a sentinel of -1

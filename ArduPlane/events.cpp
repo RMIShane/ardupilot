@@ -187,6 +187,21 @@ void Plane::handle_battery_failsafe(const char *type_str, const int8_t action)
                 aparm.throttle_cruise.load();
             }
             break;
+            
+        case Failsafe_Action_QRTL:
+            if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_LAND && control_mode != &mode_qland && !quadplane.in_vtol_land_sequence()) {
+                // never stop a landing if we were already committed
+                if (g.rtl_autoland == 2 && plane.mission.is_best_land_sequence()) {
+                    // continue mission as it will reach a landing in less distance
+                    plane.mission.set_in_landing_sequence_flag(true);
+                    break;
+                }
+                if (quadplane.available()) {
+                    set_mode(mode_qrtl, ModeReason::BATTERY_FAILSAFE);
+                }    
+            }
+            break;            
+            
 
         case Failsafe_Action_Terminate:
 #if ADVANCED_FAILSAFE == ENABLED

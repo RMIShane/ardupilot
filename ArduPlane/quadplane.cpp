@@ -1709,8 +1709,8 @@ void QuadPlane::update_transition(void)
         
         // SuperVolo
         // hold aircraft in transition for a minimum amount of time 
-        // while RPM is above "Transition RPM" regardless of airspeed
-        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight && thrust_time_ms > min_thrust_time_ms) {
+        // while RPM is above "Transition RPM" regardless of airspeed (code not yet added)
+        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }

@@ -121,7 +121,7 @@ void Plane::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
     log_bit = MASK_LOG_PM;
 }
 
-constexpr int8_t Plane::_failsafe_priorities[7];
+constexpr int8_t Plane::_failsafe_priorities[8];
 
 // update AHRS system
 void Plane::ahrs_update()
