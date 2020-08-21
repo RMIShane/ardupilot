@@ -326,8 +326,13 @@ void Plane::control_failsafe()
                     break;
                 }
                 FALLTHROUGH;
-            default:
-                channel_throttle->set_control_in(0);
+            default: 
+                if (control_mode == &mode_auto || control_mode == &mode_guided || control_mode == &mode_rtl) {
+                    // set throttle to mid to avoid navigation speed throttle nudging in auto and guided modes
+                    channel_throttle->set_control_in(channel_throttle->get_range() / 2);
+                } else {  
+                    channel_throttle->set_control_in(0);
+                }
                 break;
         }
     }

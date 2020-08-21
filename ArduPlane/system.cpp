@@ -326,22 +326,33 @@ void Plane::check_long_failsafe()
             // time is relative to when short failsafe enabled
             radio_timeout_ms = failsafe.short_timer_ms;
         }
+        
+        //SuperVolo either or BVLOS failsafe
+        
+        // If we loose RC while not in auto or guided failsafe immediately.
         if (failsafe.rc_failsafe &&
-            (tnow - radio_timeout_ms) > g.fs_timeout_long*1000) {
-            failsafe_long_on_event(FAILSAFE_LONG, ModeReason::RADIO_FAILSAFE);
+            (tnow - radio_timeout_ms) > 1000 && 
+            control_mode != &mode_auto &&
+            control_mode != &mode_guided) {
+            failsafe_long_on_event(FAILSAFE_LONG, ModeReason::RADIO_FAILSAFE);              
+        
+        // Ignore GCS failsafes as long as we have RC.
         } else if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_AUTO && control_mode == &mode_auto &&
                    failsafe.last_heartbeat_ms != 0 &&
-                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000) {
+                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000 &&
+                   failsafe.rc_failsafe) {
             failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
         } else if ((g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HEARTBEAT ||
                     g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI) &&
                    failsafe.last_heartbeat_ms != 0 &&
-                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000) {
+                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000 && 
+                   failsafe.rc_failsafe) {
             failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
         } else if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI && 
                    gcs().chan(0) != nullptr &&
                    gcs().chan(0)->last_radio_status_remrssi_ms != 0 &&
-                   (tnow - gcs().chan(0)->last_radio_status_remrssi_ms) > g.fs_timeout_long*1000) {
+                   (tnow - gcs().chan(0)->last_radio_status_remrssi_ms) > g.fs_timeout_long*1000 &&
+                   failsafe.rc_failsafe) {
             failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
         }
     } else {
