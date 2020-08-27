@@ -475,8 +475,8 @@ void Plane::set_servos_controlled(void)
     
     SRV_Channels::set_output_scaled(SRV_Channel::k_throttle,
                                     constrain_int16(SRV_Channels::get_output_scaled(SRV_Channel::k_throttle), min_throttle, max_throttle));
-    
-    if (!hal.util->get_soft_armed()) {
+    // SuperVolo
+    if (!hal.util->get_soft_armed() && control_mode != &mode_manual) {
         if (arming.arming_required() == AP_Arming::Required::YES_ZERO_PWM) {
             SRV_Channels::set_output_limit(SRV_Channel::k_throttle, SRV_Channel::Limit::ZERO_PWM);
             SRV_Channels::set_output_limit(SRV_Channel::k_throttleLeft, SRV_Channel::Limit::ZERO_PWM);
@@ -796,7 +796,8 @@ void Plane::set_servos(void)
         throttle_slew_limit(SRV_Channel::k_throttle);
     }
 
-    if (!arming.is_armed()) {
+    // SuperVolo
+    if (!arming.is_armed() && control_mode != &mode_manual) {
         //Some ESCs get noisy (beep error msgs) if PWM == 0.
         //This little segment aims to avoid this.
         switch (arming.arming_required()) { 

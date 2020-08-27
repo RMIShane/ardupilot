@@ -360,7 +360,7 @@ int32_t AP_BattMonitor::pack_capacity_mah(uint8_t instance) const
 }
 
 void AP_BattMonitor::check_failsafes(void)
-{
+{     
     if (hal.util->get_soft_armed()) {
         for (uint8_t i = 0; i < _num_instances; i++) {
             if (drivers[i] == nullptr) {

@@ -329,7 +329,7 @@ void Plane::check_long_failsafe()
         
         //SuperVolo either or BVLOS failsafe
         
-        // If we loose RC while not in auto or guided failsafe immediately.
+        // If we loose RC while not in auto or guided long failsafe immediately.
         if (failsafe.rc_failsafe &&
             (tnow - radio_timeout_ms) > 1000 && 
             control_mode != &mode_auto &&
