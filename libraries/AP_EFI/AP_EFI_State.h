@@ -187,6 +187,9 @@ struct EFI_State {
     
     // ECU Error State
     int16_t ecu_error_state;
+    
+    // ECU Synthetic Airspeed
+    int16_t synthetic_arspd;
 
     // Throttle position (percent)
     uint8_t throttle_position_percent;

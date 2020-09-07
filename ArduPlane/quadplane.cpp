@@ -1439,8 +1439,7 @@ bool QuadPlane::assistance_needed(float aspeed)
         return false;
     }
     
-    //SuperVolo
-    
+    //SuperVolo       
     //Fuel Comp
     float fuel_comp_arspd = 0;
     #if EFI_ENABLED
@@ -1453,9 +1452,10 @@ bool QuadPlane::assistance_needed(float aspeed)
         angle_error_start_ms = 0;
         return true;
     }
-    
-    const uint32_t now = AP_HAL::millis();
 
+     const uint32_t now = AP_HAL::millis();          
+     
+   
     /*
       optional assistance when altitude is too close to the ground
      */
@@ -1705,12 +1705,12 @@ void QuadPlane::update_transition(void)
         
         else {
             transition_speed_current = plane.aparm.airspeed_min;
-        }
+        }   
         
         // SuperVolo
-        // hold aircraft in transition for a minimum amount of time 
-        // while RPM is above "Transition RPM" regardless of airspeed (code not yet added)
-        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight) {
+        // exit transition when transition airspeed is reached and RPM has been greater than 6500 for 4 seconds
+        // avoids crash in the event of high airspeed pitot anomaly
+        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight && plane.g2.efi.get_synthetic_arspd() > 3) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }
@@ -1719,7 +1719,7 @@ void QuadPlane::update_transition(void)
         if ((now - transition_message) > 500 && plane.g2.rl_lim_dev == 1) {
             transition_message = now;
             float dev_message = transition_speed_current + fuel_comp_arspd;    
-            gcs().send_text(MAV_SEVERITY_INFO, "TS: %.1f", dev_message);     
+            gcs().send_text(MAV_SEVERITY_INFO, "TS: %.1f", dev_message);      
         }
           
         assisted_flight = true;

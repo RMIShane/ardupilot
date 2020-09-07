@@ -39,7 +39,7 @@ void Compass::cal_update()
     }
 
     AP_Notify::flags.compass_cal_running = running;
-
+    
     if (is_calibrating()) {
         _cal_has_run = true;
         return;

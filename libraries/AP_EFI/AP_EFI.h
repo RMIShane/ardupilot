@@ -90,6 +90,9 @@ public:
     // get battery info from backend if available
     bool get_battery(float &voltage, float &current, float &mah) const;
     
+    // get synthetic airspeed
+    int16_t get_synthetic_arspd() const { return state.synthetic_arspd; }
+    
     //Fuel Comp    
     AP_Int16 fuel_comp_arspd;
     AP_Float fuel_comp_climb;  

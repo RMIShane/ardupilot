@@ -78,4 +78,9 @@ private:
     bool _send_charge_complete_message;
     bool _send_error_state_message = true;
     uint32_t _charge_start_millis;
+    
+    // SuperVolo timer for min RPM and very basic synthetic air speed
+    uint32_t synthetic_arspd_ms;
+    uint32_t synthetic_arspd_message_ms;
+    int8_t last_synthetic_arspd;  
 };

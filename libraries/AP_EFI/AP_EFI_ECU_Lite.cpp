@@ -49,6 +49,7 @@ void AP_EFI_ECU_Lite::update()
             internal_state.fuel_remaining_pct = _latest.fuel;
             internal_state.lifetime_run_time = _latest.engine_time;
             internal_state.ecu_error_state = _latest.error_state;
+            internal_state.synthetic_arspd = last_synthetic_arspd;
 
             //Error State Throttle Hold
             //if (_latest.error_state == 1) {
@@ -147,6 +148,38 @@ void AP_EFI_ECU_Lite::check_status()
             _charge_start_millis = now;
             _send_charge_message = true;
         }
+    }
+    
+    // SuperVolo
+    // Very Basic Synthetic Airspeed
+    if (_latest.rpm > 6500.0 && now - synthetic_arspd_ms > 1000){
+        synthetic_arspd_ms = now;
+        last_synthetic_arspd ++;    
+        
+        if (last_synthetic_arspd > 10){
+            last_synthetic_arspd = 10;
+        }
+                
+    // dev message
+    //float dev_message = last_synthetic_arspd;    
+    //gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);       
+    
+    } 
+              
+    else if (_latest.rpm < 2500.0 && now - synthetic_arspd_ms > 1000){
+        synthetic_arspd_ms = now;    
+        last_synthetic_arspd --;
+        
+
+        
+        if (last_synthetic_arspd < 0){
+            last_synthetic_arspd = 0;
+        }
+    
+    // dev message
+    //float dev_message = last_synthetic_arspd;    
+    //gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);    
+                 
     }
 }
 
