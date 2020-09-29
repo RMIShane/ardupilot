@@ -3,6 +3,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Baro/AP_Baro.h>
 #include <AP_Logger/AP_Logger.h>
+#include <AP_EFI/AP_EFI.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -347,13 +348,23 @@ void AP_TECS::_update_speed(float load_factor)
     uint64_t now = AP_HAL::micros64();
     float DT = (now - _update_speed_last_usec) * 1.0e-6f;
     _update_speed_last_usec = now;
-
+    
+    
+    //Fuel Comp
+    float fuel_comp_arspd = 0.0f;   
+    
+    AP_EFI *efi = AP::EFI();
+    
+    if (efi != nullptr) {        
+        fuel_comp_arspd = ((efi->get_tank_pct() * efi->fuel_comp_arspd) / 100.0f);            
+    } 
+    
     // Convert equivalent airspeeds to true airspeeds
 
     float EAS2TAS = _ahrs.get_EAS2TAS();
     _TAS_dem = _EAS_dem * EAS2TAS;
     _TASmax   = aparm.airspeed_max * EAS2TAS;
-    _TASmin   = aparm.airspeed_min * EAS2TAS;
+    _TASmin   = (aparm.airspeed_min + fuel_comp_arspd) * EAS2TAS;
 
     if (aparm.stall_prevention) {
         // when stall prevention is active we raise the mimimum
@@ -381,7 +392,7 @@ void AP_TECS::_update_speed(float load_factor)
     bool use_airspeed = _use_synthetic_airspeed_once || _use_synthetic_airspeed.get() || _ahrs.airspeed_sensor_enabled();
     if (!use_airspeed || !_ahrs.airspeed_estimate(_EAS)) {
         // If no airspeed available use average of min and max
-        _EAS = 0.5f * (aparm.airspeed_min.get() + (float)aparm.airspeed_max.get());
+        _EAS = 0.5f * (aparm.airspeed_min.get() + fuel_comp_arspd + (float)aparm.airspeed_max.get());
     }
 
     // Implement a second order complementary filter to obtain a
@@ -405,7 +416,7 @@ void AP_TECS::_update_speed_demand(void)
 {
     // Set the airspeed demand to the minimum value if an underspeed condition exists
     // or a bad descent condition exists
-    // This will minimise the rate of descent resulting from an engine failure,
+    // This will minimise the rate of descent relting from an engine failure,
     // enable the maximum climb rate to be achieved and prevent continued full power descent
     // into the ground due to an unachievable airspeed value
     if ((_flags.badDescent) || (_flags.underspeed))
@@ -462,17 +473,10 @@ void AP_TECS::_update_height_demand(void)
         max_sink_rate = _maxSinkRate_approach;
     }
     
-    // Limit height rate of change    
-      
-    //Fuel Comp
-    float fuel_comp_climb = 0.0f;   
-    #if EFI_ENABLED
-    fuel_comp_climb = (AP::EFI()->get_tank_pct() * AP::EFI()->fuel_comp_climb / 100.0f);
-    #endif
-    
-    if ((_hgt_dem - _hgt_dem_prev) > ((_maxClimbRate - fuel_comp_climb) * 0.1f))
+    // Limit height rate of change        
+    if ((_hgt_dem - _hgt_dem_prev) > (_maxClimbRate * 0.1f))
     {
-        _hgt_dem = _hgt_dem_prev + (_maxClimbRate - fuel_comp_climb) * 0.1f;
+        _hgt_dem = _hgt_dem_prev + _maxClimbRate * 0.1f;
     }
     else if ((_hgt_dem - _hgt_dem_prev) < (-max_sink_rate * 0.1f))
     {
@@ -896,6 +900,39 @@ void AP_TECS::_update_pitch(void)
     // Constrain pitch demand
     _pitch_dem = constrain_float(_pitch_dem_unc, _PITCHminf, _PITCHmaxf);
 
+    // SuperVolo
+    // Reduce pitch demand if approaching minimum airspeed
+    // Compensates for varible max thrust and changing weight in internanl combustion vehicles      
+    float ASPitchScale = 1.0f;    
+    if (_TAS_state - _TASmin < (_TASmax - _TASmin) *.15f){
+      
+        ASPitchScale = (_TAS_state - _TASmin) / ((_TASmax-_TASmin) * .15f);
+        if (ASPitchScale > 1.0f){
+            ASPitchScale = 1.0f;
+        }
+        if (ASPitchScale < 0.0f){
+            ASPitchScale = 0.0f;
+        }
+    }
+    
+    //Pitch Scale Smoothing
+    const uint32_t now_ms = AP_HAL::millis();      
+    if (now_ms - ASPitchScale_ms > 100){
+        ASPitchScale_ms = now_ms;
+        ASPitchScaleSmoothed = (ASPitchScaleSmoothed * .9) + (ASPitchScale *.1);
+    }
+    
+    //Scale Pitch
+    _pitch_dem = _pitch_dem * ASPitchScaleSmoothed;
+           
+    //Dev Messaging     
+    if (now_ms - ASPitchScaleDev_ms > 2000){  
+	    ASPitchScaleDev_ms = now_ms;     
+            float pitch_scaled = _pitch_dem * ASPitchScaleSmoothed;
+            gcs().send_text(MAV_SEVERITY_INFO, "MIN: %.2f MAX: %.2f TAS: %.2f" ,_TASmin, _TASmax, _TAS_state);
+	    gcs().send_text(MAV_SEVERITY_INFO, "DP: %.2f SP: %.2f PS: %.2f PSS %.2f" ,_pitch_dem, pitch_scaled, ASPitchScale, ASPitchScaleSmoothed);
+    }
+     
     // Rate limit the pitch demand to comply with specified vertical
     // acceleration limit
     float ptchRateIncr = _DT * _vertAccLim / _TAS_state;
@@ -956,16 +993,9 @@ void AP_TECS::_initialise_states(int32_t ptchMinCO_cd, float hgt_afe)
 void AP_TECS::_update_STE_rate_lim(void)
 {
     // Calculate Specific Total Energy Rate Limits
-    // This is a trivial calculation at the moment but will get bigger once we start adding altitude effects
-   
-    //Fuel Comp
-    float fuel_comp_climb = 0.0f;   
-    #if EFI_ENABLED
-    fuel_comp_climb = (AP::EFI()->get_tank_pct() * 2.0f / 100.0f);
-    #endif
-     
-    _STEdot_max = (_maxClimbRate - fuel_comp_climb) * GRAVITY_MSS;
-    _STEdot_min = - (_minSinkRate - fuel_comp_climb) * GRAVITY_MSS;
+    // This is a trivial calculation at the moment but will get bigger once we start adding altitude effects   
+    _STEdot_max = _maxClimbRate * GRAVITY_MSS;
+    _STEdot_min = - _minSinkRate * GRAVITY_MSS;
 }
 
 

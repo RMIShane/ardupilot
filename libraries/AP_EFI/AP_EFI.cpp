@@ -56,15 +56,6 @@ const AP_Param::GroupInfo AP_EFI::var_info[] = {
     // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("_FUEL_CMP_SPD", 4, AP_EFI, fuel_comp_arspd, 0),
-    
-    // @Param: _FUEL_CMP_CLM
-    // @DisplayName: Air Speed Fuel Comp
-    // @Description: Amount to subtract from TECS_CLMB_MAX to compensatte for weight of full fuel load.
-    // @Range: 0 10
-    // @Units: m/s
-    // @Increment: 1
-    // @User: Standard
-    AP_GROUPINFO("_FUEL_CMP_CLM", 5, AP_EFI, fuel_comp_climb, 0),
 
     AP_GROUPEND
 };

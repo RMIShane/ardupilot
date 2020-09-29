@@ -894,22 +894,28 @@ void AP_GPS::update_primary(void)
             continue;
         }
 
-        bool another_gps_has_1_or_more_sats = (state[i].num_sats >= state[primary_instance].num_sats + 1);
+        bool another_gps_has_2_or_more_sats = (state[i].num_sats >= state[primary_instance].num_sats + 2);
 
-        if (state[i].status == state[primary_instance].status && another_gps_has_1_or_more_sats) {
+        if (state[i].status == state[primary_instance].status && another_gps_has_2_or_more_sats) {
 
-            bool another_gps_has_2_or_more_sats = (state[i].num_sats >= state[primary_instance].num_sats + 2);
+            bool another_gps_has_6_or_more_sats = (state[i].num_sats >= state[primary_instance].num_sats + 6);
 
-            if ((another_gps_has_1_or_more_sats && (now - _last_instance_swap_ms) >= 20000) ||
-                (another_gps_has_2_or_more_sats && (now - _last_instance_swap_ms) >= 5000)) {
-                // this GPS has more satellites than the
-                // current primary, switch primary. Once we switch we will
-                // then tend to stick to the new GPS as primary. We don't
-                // want to switch too often as it will look like a
-                // position shift to the controllers.
-                primary_instance = i;
-                _last_instance_swap_ms = now;
+            //when disarmed activally switch to best GPS
+            if (!hal.util->get_soft_armed()){
+                if (another_gps_has_2_or_more_sats && (now - _last_instance_swap_ms) >= 5000) {    
+                    primary_instance = i;
+                    _last_instance_swap_ms = now;
+                    gcs().send_text(MAV_SEVERITY_CRITICAL, "GPS-SWITCH TO BEST");
+                }
             }
+             //while flying only switch GPS if there is a significant differance
+            else if (hal.util->get_soft_armed()){
+                if (another_gps_has_6_or_more_sats && (now - _last_instance_swap_ms) >= 5000) {  
+                    primary_instance = i;
+                    _last_instance_swap_ms = now;
+                    gcs().send_text(MAV_SEVERITY_CRITICAL, "GPS-SWITCH TO SECONDARY");
+                }
+            }   
         }
     }
 #endif // GPS_BLENDED_INSTANCE

@@ -382,4 +382,10 @@ private:
 
     // current time constant
     float timeConstant(void) const;
+    
+    // ASPitchScaler Dev Message
+    float ASPitchScaleSmoothed;
+    uint32_t ASPitchScale_ms;
+    uint32_t ASPitchScaleDev_ms;
+    
 };

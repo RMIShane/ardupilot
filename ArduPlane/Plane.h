@@ -762,6 +762,12 @@ private:
 
     // rudder mixing gain for differential thrust (0 - 1)
     float rudder_dt;
+    
+    // monitor altitude during RTL (detect uncontroled decent / engine failure)
+    int32_t current_RTL_altitude;
+    int32_t last_altitude_check_ms;
+    int32_t last_low_altitude;
+    int16_t low_altitude_count; 
 
     void adjust_nav_pitch_throttle(void);
     void update_load_factor(void);

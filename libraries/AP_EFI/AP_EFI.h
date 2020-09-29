@@ -94,14 +94,10 @@ public:
     int16_t get_synthetic_arspd() const { return state.synthetic_arspd; }
     
     //Fuel Comp    
-    AP_Int16 fuel_comp_arspd;
-    AP_Float fuel_comp_climb;  
+    AP_Int16 fuel_comp_arspd;  
     
     // get fuel comp airspeed
-    //int32_t get_fuel_comp_arspd_cm() const { return state.fuel_comp_arspd_cm; }
-    
-    // get fuel comp climb
-    //float get_fuel_comp_climb() const { return state.fuel_comp_climb; }   
+    //int32_t get_fuel_comp_arspd_cm() const { return state.fuel_comp_arspd_cm; }   
 
 protected:
 

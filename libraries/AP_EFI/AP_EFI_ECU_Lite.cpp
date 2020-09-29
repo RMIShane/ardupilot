@@ -91,10 +91,34 @@ void AP_EFI_ECU_Lite::check_status()
             gcs().send_text(MAV_SEVERITY_CRITICAL, "POWER BUS ANOMALY");
         }
         
-        if (_latest.error_state == 2 && _send_error_state_message) {
-            _send_engine_time_message = false;
+        else if (_latest.error_state == 2 && _send_error_state_message) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "BUS STABILIZED");
-        }    
+        }
+        
+        else if (_latest.error_state == 3 && _send_error_state_message) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-QRTL");
+        }
+        
+        else if (_latest.error_state == 4 && _send_error_state_message) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-RALLY");
+        }
+        
+        else if (_latest.error_state == 5 && _send_error_state_message) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-QRTL");
+        }
+        
+        else if (_latest.error_state == 6 && _send_error_state_message) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-RALLY");
+        }
+        else if (_latest.error_state == 7 && _send_error_state_message) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-QRTL");
+        }
+        
+        else if (_latest.error_state == 8 && _send_error_state_message) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-RALLY");
+        }
+        
+        
         
 
         // Engine Time (send once per engine cycle)

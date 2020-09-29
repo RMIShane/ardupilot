@@ -656,7 +656,6 @@ void Plane::update_load_factor(void)
          
          //Fuel Comp
          int32_t fuel_comp_arspd_cm = 0;
-         //float fuel_comp_climb = 0.0f;
          #if EFI_ENABLED
          fuel_comp_arspd_cm = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd);
          #endif
@@ -699,7 +698,6 @@ void Plane::update_load_factor(void)
                 //gcs().send_text(MAV_SEVERITY_INFO, "PC: %f", pitch_component);
                 gcs().send_text(MAV_SEVERITY_INFO, "Roll Limit: %d", roll_limit_ms);
                 //gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp Arspd: %ld", fuel_comp_arspd_cm);
-                //gcs().send_text(MAV_SEVERITY_INFO, "Fuel Comp Climb: %f", fuel_comp_climb);
             }     
         }
     }
