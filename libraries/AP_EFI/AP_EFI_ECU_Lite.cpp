@@ -96,30 +96,18 @@ void AP_EFI_ECU_Lite::check_status()
         }
         
         else if (_latest.error_state == 3) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-QRTL");
-        }
-        
-        else if (_latest.error_state == 4) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-RALLY");
         }
         
-        else if (_latest.error_state == 5) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-QRTL");
-        }
-        
-        else if (_latest.error_state == 6) {
+        else if (_latest.error_state == 4) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-RALLY");
         }
         
-        else if (_latest.error_state == 7) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-QRTL");
-        }
-        
-        else if (_latest.error_state == 8) {
+        else if (_latest.error_state == 5) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-RALLY");
         }
         
-        else if (_latest.error_state == 9) {
+        else if (_latest.error_state == 6) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "FUEL SENSOR ANOMALY-RALLY");
         }
         
