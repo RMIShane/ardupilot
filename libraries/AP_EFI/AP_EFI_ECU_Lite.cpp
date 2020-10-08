@@ -91,32 +91,38 @@ void AP_EFI_ECU_Lite::check_status()
             gcs().send_text(MAV_SEVERITY_CRITICAL, "POWER BUS ANOMALY");
         }
         
-        else if (_latest.error_state == 2 && _send_error_state_message) {
+        else if (_latest.error_state == 2) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "BUS STABILIZED");
         }
         
-        else if (_latest.error_state == 3 && _send_error_state_message) {
+        else if (_latest.error_state == 3) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-QRTL");
         }
         
-        else if (_latest.error_state == 4 && _send_error_state_message) {
+        else if (_latest.error_state == 4) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-RALLY");
         }
         
-        else if (_latest.error_state == 5 && _send_error_state_message) {
+        else if (_latest.error_state == 5) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-QRTL");
         }
         
-        else if (_latest.error_state == 6 && _send_error_state_message) {
+        else if (_latest.error_state == 6) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-RALLY");
         }
-        else if (_latest.error_state == 7 && _send_error_state_message) {
+        
+        else if (_latest.error_state == 7) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-QRTL");
         }
         
-        else if (_latest.error_state == 8 && _send_error_state_message) {
+        else if (_latest.error_state == 8) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-RALLY");
         }
+        
+        else if (_latest.error_state == 9) {
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "FUEL SENSOR ANOMALY-RALLY");
+        }
+        
         
         
         

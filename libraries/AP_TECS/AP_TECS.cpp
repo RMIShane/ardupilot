@@ -904,9 +904,9 @@ void AP_TECS::_update_pitch(void)
     // Reduce pitch demand if approaching minimum airspeed
     // Compensates for varible max thrust and changing weight in internanl combustion vehicles      
     float ASPitchScale = 1.0f;    
-    if (_TAS_state - _TASmin < (_TASmax - _TASmin) *.15f){
+    if (_TAS_state - _TASmin < (_TASmax - _TASmin) *.25f){
       
-        ASPitchScale = (_TAS_state - _TASmin) / ((_TASmax-_TASmin) * .15f);
+        ASPitchScale = (_TAS_state - _TASmin) / ((_TASmax-_TASmin) * .25f);
         if (ASPitchScale > 1.0f){
             ASPitchScale = 1.0f;
         }
@@ -919,19 +919,22 @@ void AP_TECS::_update_pitch(void)
     const uint32_t now_ms = AP_HAL::millis();      
     if (now_ms - ASPitchScale_ms > 100){
         ASPitchScale_ms = now_ms;
-        ASPitchScaleSmoothed = (ASPitchScaleSmoothed * .9) + (ASPitchScale *.1);
+        ASPitchScaleSmoothed = (ASPitchScaleSmoothed * .9f) + (ASPitchScale *.1f);
     }
     
-    //Scale Pitch
-    _pitch_dem = _pitch_dem * ASPitchScaleSmoothed;
+    //Scale Pitch and apply up to 2 degrees negative pitch (in radians)
+    _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * -.0349066f);
            
     //Dev Messaging     
-    if (now_ms - ASPitchScaleDev_ms > 2000){  
-	    ASPitchScaleDev_ms = now_ms;     
+    if (now_ms - ASPitchScaleDev_ms > 2000){
+        ASPitchScaleDev_ms = now_ms;
+	
+	if (ASPitchScaleSmoothed < .95f){     
             float pitch_scaled = _pitch_dem * ASPitchScaleSmoothed;
-            gcs().send_text(MAV_SEVERITY_INFO, "MIN: %.2f MAX: %.2f TAS: %.2f" ,_TASmin, _TASmax, _TAS_state);
-	    gcs().send_text(MAV_SEVERITY_INFO, "DP: %.2f SP: %.2f PS: %.2f PSS %.2f" ,_pitch_dem, pitch_scaled, ASPitchScale, ASPitchScaleSmoothed);
-    }
+            //gcs().send_text(MAV_SEVERITY_INFO, "MIN: %.2f MAX: %.2f TAS: %.2f" ,_TASmin, _TASmax, _TAS_state);
+	    gcs().send_text(MAV_SEVERITY_INFO, "DP: %.2f SP: %.2f PS: %.2f" ,_pitch_dem, pitch_scaled, ASPitchScaleSmoothed);
+        }
+    }   
      
     // Rate limit the pitch demand to comply with specified vertical
     // acceleration limit

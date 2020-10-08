@@ -763,11 +763,19 @@ private:
     // rudder mixing gain for differential thrust (0 - 1)
     float rudder_dt;
     
+    // look at airspeed and location when entering rally then switch to QRTL if sensible
+    int16_t QRTL_check;
+    
     // monitor altitude during RTL (detect uncontroled decent / engine failure)
     int32_t current_RTL_altitude;
     int32_t last_altitude_check_ms;
     int32_t last_low_altitude;
-    int16_t low_altitude_count; 
+    int16_t low_altitude_count;
+    
+    // monitor airspeed during RTL (detect quadplane transision failure)
+    int32_t last_airspeed_check_ms;
+    int16_t low_airspeed_count;
+    
 
     void adjust_nav_pitch_throttle(void);
     void update_load_factor(void);
