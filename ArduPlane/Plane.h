@@ -767,6 +767,7 @@ private:
     int16_t QRTL_check;
     
     // monitor altitude during RTL (detect uncontroled decent / engine failure)
+    int16_t RTL_altitude_hold;
     int32_t current_RTL_altitude;
     int32_t last_altitude_check_ms;
     int32_t last_low_altitude;

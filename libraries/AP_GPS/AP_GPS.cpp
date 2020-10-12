@@ -905,7 +905,7 @@ void AP_GPS::update_primary(void)
                 if (another_gps_has_2_or_more_sats && (now - _last_instance_swap_ms) >= 30000) {    
                     primary_instance = i;
                     _last_instance_swap_ms = now;
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "GPS-Switch to best");
+                    gcs().send_text(MAV_SEVERITY_INFO, "GPS-Switch to best");
                 }
             }
              //while flying only switch GPS if there is a significant differance

@@ -7,25 +7,43 @@ bool ModeRTL::_enter()
     plane.auto_throttle_mode = true;
     plane.auto_navigation_mode = true;
     plane.prev_WP_loc = plane.current_loc;
-    plane.do_RTL(plane.get_RTL_altitude());
+    
     plane.current_RTL_altitude = plane.get_RTL_altitude();
     plane.last_low_altitude = plane.current_loc.alt;
     plane.low_altitude_count = 0;
     plane.low_airspeed_count = 0;
-    plane.QRTL_check = 0; 
-
-    // Should we be in QRTL instead? (are we hovering close to the home or a rally location)
+         
+    //dev messaging
+    float current_altitude_test = plane.current_loc.alt;
+    float rally_alt_test = plane.current_RTL_altitude;
+    gcs().send_text(MAV_SEVERITY_INFO, "ALT: %.2f RALT: %.2f" ,current_altitude_test, rally_alt_test);
+    
+    
+    // Are we significanly higher than our Rally altitude? (if so fly to the Rally point at our current altitude to reduce the chances of hitting something)
+    if (plane.current_loc.alt > plane.current_RTL_altitude + 2500) {
+        plane.do_RTL(plane.current_loc.alt);
+        gcs().send_text(MAV_SEVERITY_INFO, "Altitude Hold - RTL");
+        plane.RTL_altitude_hold = 1;
+    }
+    
+    else {
+        plane.do_RTL(plane.get_RTL_altitude());
+    }
+    
+    
+    // Should we be in QRTL instead? (are we hovering close to the home or a Rally location)
     float airspeed;
     if (plane.ahrs.airspeed_estimate(airspeed)){
         if (airspeed < plane.aparm.airspeed_min * .75){
                     
-            // Are we within 500m of our rally location or home?
+            // Are we within 500m of our Rally location or home?
             if (plane.current_loc.get_distance(plane.next_WP_loc) < 250.0){ 
                 plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
-                gcs().send_text(MAV_SEVERITY_CRITICAL, "AUTO SWITCH - QRTL");
+                gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto Switch - QRTL");
             }
         }
     }
+    
     
     return true;
 }
@@ -36,20 +54,13 @@ void ModeRTL::update()
     plane.calc_nav_pitch();
     plane.calc_throttle();
     
-    
-    // Should we be in QRTL instead? (are we hovering close to the home or a rally location)
-    //if (plane.QRTL_check == 0){
-        //plane.QRTL_check = 1;
-              
-    //}
-    
-      
+   
     // RTL Altitude Monitor     
     if (AP_HAL::millis() - plane.last_altitude_check_ms > 1000){            
         plane.last_altitude_check_ms = AP_HAL::millis();
         
         // Are we below our RTL Altitude?
-        if (plane.current_loc.alt < plane.current_RTL_altitude - 200) {
+        if (plane.current_loc.alt < plane.current_RTL_altitude - 200){
             
             //dev messaging
             float current_altitude = plane.current_loc.alt;
@@ -59,7 +70,7 @@ void ModeRTL::update()
             gcs().send_text(MAV_SEVERITY_INFO, "ALT: %.2f Dist: %.2f LAC: %.2f RALT: %.2f" ,current_altitude, current_distance, low_alt_cnt, rally_alt);
                        
             // Are we decending?
-            if (plane.current_loc.alt < plane.last_low_altitude - 300) {
+            if (plane.current_loc.alt < plane.last_low_altitude - 300){
                 plane.last_low_altitude = plane.current_loc.alt;
                 plane.low_altitude_count ++;      
                      
@@ -76,6 +87,12 @@ void ModeRTL::update()
         else {     
             plane.low_altitude_count = 0;
             plane.last_low_altitude = plane.current_loc.alt;
+        }
+        
+        // RTL Altitude Hold Monitor (set altitude to Rally point altitude once we are close)
+        if (plane.RTL_altitude_hold == 1 && plane.current_loc.get_distance(plane.next_WP_loc) < 500.0){
+            plane.RTL_altitude_hold = 0;
+            plane.do_RTL(plane.get_RTL_altitude());    
         }
     }
     
