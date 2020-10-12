@@ -934,7 +934,7 @@ void AP_TECS::_update_pitch(void)
             //gcs().send_text(MAV_SEVERITY_INFO, "MIN: %.2f MAX: %.2f TAS: %.2f" ,_TASmin, _TASmax, _TAS_state);
 	    gcs().send_text(MAV_SEVERITY_INFO, "DP: %.2f SP: %.2f PS: %.2f" ,_pitch_dem, pitch_scaled, ASPitchScaleSmoothed);
         }
-    }   
+    } 
      
     // Rate limit the pitch demand to comply with specified vertical
     // acceleration limit

@@ -20,9 +20,9 @@ bool ModeRTL::_enter()
         if (airspeed < plane.aparm.airspeed_min * .75){
                     
             // Are we within 500m of our rally location or home?
-            if (plane.current_loc.get_distance(plane.next_WP_loc) < 500.0){ 
+            if (plane.current_loc.get_distance(plane.next_WP_loc) < 250.0){ 
                 plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
-                gcs().send_text(MAV_SEVERITY_CRITICAL, "AUTO SWITCH TO QRTL");
+                gcs().send_text(MAV_SEVERITY_CRITICAL, "AUTO SWITCH - QRTL");
             }
         }
     }
@@ -52,11 +52,11 @@ void ModeRTL::update()
         if (plane.current_loc.alt < plane.current_RTL_altitude - 200) {
             
             //dev messaging
-            //float current_altitude = plane.current_loc.alt;
-            //float current_distance = plane.current_loc.get_distance(plane.next_WP_loc);
-            //float low_alt_cnt = plane.low_altitude_count;
-            //float rally_alt = plane.current_RTL_altitude;
-            //gcs().send_text(MAV_SEVERITY_INFO, "ALT: %.2f Dist: %.2f LAC: %.2f RALT: %.2f" ,current_altitude, current_distance, low_alt_cnt, rally_alt);
+            float current_altitude = plane.current_loc.alt;
+            float current_distance = plane.current_loc.get_distance(plane.next_WP_loc);
+            float low_alt_cnt = plane.low_altitude_count;
+            float rally_alt = plane.current_RTL_altitude;
+            gcs().send_text(MAV_SEVERITY_INFO, "ALT: %.2f Dist: %.2f LAC: %.2f RALT: %.2f" ,current_altitude, current_distance, low_alt_cnt, rally_alt);
                        
             // Are we decending?
             if (plane.current_loc.alt < plane.last_low_altitude - 300) {
@@ -68,7 +68,7 @@ void ModeRTL::update()
      
                     // Set mode to QRTL then fly torwards our rally or home location until we either get there or reach our critical battery failsafe.
                     plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "LOW ALTITUDE - QRTL");                       
+                    gcs().send_text(MAV_SEVERITY_CRITICAL, "LOW ALTITUDE - QRTL");                    
                 }
             }
         }

@@ -902,10 +902,10 @@ void AP_GPS::update_primary(void)
 
             //when disarmed activally switch to best GPS
             if (!hal.util->get_soft_armed()){
-                if (another_gps_has_2_or_more_sats && (now - _last_instance_swap_ms) >= 5000) {    
+                if (another_gps_has_2_or_more_sats && (now - _last_instance_swap_ms) >= 30000) {    
                     primary_instance = i;
                     _last_instance_swap_ms = now;
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "GPS-SWITCH TO BEST");
+                    gcs().send_text(MAV_SEVERITY_CRITICAL, "GPS-Switch to best");
                 }
             }
              //while flying only switch GPS if there is a significant differance

@@ -92,23 +92,23 @@ void AP_EFI_ECU_Lite::check_status()
         }
         
         else if (_latest.error_state == 2) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "BUS STABILIZED");
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "HCU ERROR CLEARED");
         }
         
         else if (_latest.error_state == 3) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY-RALLY");
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE RPM ANOMALY");
         }
         
         else if (_latest.error_state == 4) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE-RALLY");
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "STARTING FAILURE");
         }
         
         else if (_latest.error_state == 5) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "POOR ENGINE HEALTH-RALLY");
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "ENGINE HEALTH POOR");
         }
         
         else if (_latest.error_state == 6) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "FUEL SENSOR ANOMALY-RALLY");
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "FUEL SENSOR ANOMALY");
         }
         
         
