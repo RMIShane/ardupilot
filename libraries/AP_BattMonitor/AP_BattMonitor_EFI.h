@@ -21,7 +21,7 @@ public:
     bool has_current() const override { return true; }
 
     // dont allow reset for fuel cell
-    bool reset_remaining(float percentage) override { return false;};
+    //bool reset_remaining(float percentage) override { return false;};
 
     void init(void) override {}
 

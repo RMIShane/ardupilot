@@ -412,7 +412,25 @@ void AP_BattMonitor::check_failsafes(void)
                 _highest_failsafe_priority = priority;
             }
         }
-    }
+    }    
+    
+    // reset battery consumed failsafes if back in range (useful for hybrid aircraft)
+    for (uint8_t i = 0; i < _num_instances; i++) {
+        if (drivers[i] == nullptr) {
+             continue;
+        }
+            
+        if (state[i].failsafe != BatteryFailsafe_None) {
+               
+            // check if battery is at least 5% above the low failsafe point
+            if (_params[i]._pack_capacity - state[i].consumed_mah > _params[i]._low_capacity + ((float)_params[i]._pack_capacity * .05)) {
+                     
+                // calculate percentage remaining
+                float batt_percent = (float)(_params[i]._pack_capacity - state[i].consumed_mah) / (float)_params[i]._pack_capacity * 100.0;
+                reset_remaining((1U<<i), batt_percent);          
+            }                  
+        }
+    } 
 }
 
 // return true if any battery is pushing too much power
@@ -517,15 +535,15 @@ void AP_BattMonitor::checkPoweringOff(void)
   calculate percentage remaining
 */
 bool AP_BattMonitor::reset_remaining(uint16_t battery_mask, float percentage)
-{
+{ 
     bool ret = true;
     BatteryFailsafe highest_failsafe = BatteryFailsafe_None;
     for (uint8_t i = 0; i < _num_instances; i++) {
         if ((1U<<i) & battery_mask) {
-            ret &= drivers[i]->reset_remaining(percentage);
+            ret &= drivers[i]->reset_remaining(percentage);         
         }
         if (state[i].failsafe > highest_failsafe) {
-            highest_failsafe = state[i].failsafe;
+            highest_failsafe = state[i].failsafe;  
         }
     }
 

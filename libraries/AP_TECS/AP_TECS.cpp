@@ -249,6 +249,14 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @Bitmask: 0:GliderOnly
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 28, AP_TECS, _options, 0),
+    
+    // @Param: GLIDE_PITCH
+    // @DisplayName: Pitch for glide.
+    // @Description: The pitch at which the aircraft will glide without power and maintain at least minimum airspeed.
+    // @Bitmask: 0:GliderOnly
+    // @User: Advanced
+    AP_GROUPINFO("GLIDE_PITCH", 29, AP_TECS, _glide_pitch, -2.0),
+    
 
     AP_GROUPEND
 };
@@ -922,17 +930,15 @@ void AP_TECS::_update_pitch(void)
         ASPitchScaleSmoothed = (ASPitchScaleSmoothed * .9f) + (ASPitchScale *.1f);
     }
     
-    //Scale Pitch and apply up to 2 degrees negative pitch (in radians)
-    _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * -.0349066f);
+    //Scale Pitch and apply _glide_pitch in radians. (this allows us to force the nose down beyond zero to maintain airspeed)
+    _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * (_glide_pitch / 57.2958));
            
     //Dev Messaging     
     if (now_ms - ASPitchScaleDev_ms > 2000){
         ASPitchScaleDev_ms = now_ms;
 	
 	if (ASPitchScaleSmoothed < .95f){     
-            float pitch_scaled = _pitch_dem * ASPitchScaleSmoothed;
-            //gcs().send_text(MAV_SEVERITY_INFO, "MIN: %.2f MAX: %.2f TAS: %.2f" ,_TASmin, _TASmax, _TAS_state);
-	    gcs().send_text(MAV_SEVERITY_INFO, "DP: %.2f SP: %.2f PS: %.2f" ,_pitch_dem, pitch_scaled, ASPitchScaleSmoothed);
+	    gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f PD: %.2f PS: %.2f" ,_TAS_state ,(_pitch_dem * 57.2958), (ASPitchScaleSmoothed * 57.2958));
         }
     } 
      
