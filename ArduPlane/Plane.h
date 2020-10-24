@@ -766,9 +766,10 @@ private:
     // look at airspeed and location when entering rally then switch to QRTL if sensible
     int16_t QRTL_check;
     
-    // monitor altitude during RTL (detect uncontroled decent / engine failure)
+    // monitor altitude during RTL/AUTO/Guided (detect uncomanded decent / engine failure)
+    int32_t RTL_altitude;
+    int32_t current_NAV_altitude;
     int16_t RTL_altitude_hold;
-    int32_t current_RTL_altitude;
     int32_t last_altitude_check_ms;
     int32_t last_low_altitude;
     int16_t low_altitude_count;

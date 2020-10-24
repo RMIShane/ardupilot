@@ -331,6 +331,7 @@ private:
     
     // SuperVolo Dev
     uint32_t transition_message;
+    uint32_t qrtl_message;
 
     struct {
         AP_Float gain;
@@ -411,6 +412,7 @@ private:
         float max_speed;
         Vector3f target;
         bool slow_descent:1;
+        uint8_t final_decel;
     } poscontrol;
 
     struct {

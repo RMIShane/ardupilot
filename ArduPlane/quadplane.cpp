@@ -492,7 +492,6 @@ const AP_Param::GroupInfo QuadPlane::var_info2[] = {
     // @User: Standard
     AP_GROUPINFO("TRANSITION_SPD", 19, QuadPlane, transition_speed, 0),
     
-
     AP_GROUPEND
 };
 
@@ -2350,12 +2349,14 @@ void QuadPlane::vtol_position_controller(void)
 
     // horizontal position control
     switch (poscontrol.state) {
-
+     
     case QPOS_POSITION1: {
+                 
         const Vector2f diff_wp = plane.current_loc.get_distance_NE(loc);
         const float distance = diff_wp.length();
         Vector2f groundspeed = ahrs.groundspeed_vector();
         float speed_towards_target = distance>1?(diff_wp.normalized() * groundspeed):0;
+             
         if (poscontrol.speed_scale <= 0) {
             // initialise scaling so we start off targeting our
             // current linear speed towards the target. If this is
@@ -2371,13 +2372,21 @@ void QuadPlane::vtol_position_controller(void)
             poscontrol.max_speed = MAX(speed_towards_target, wp_nav->get_default_speed_xy() * 0.01);
             poscontrol.speed_scale = poscontrol.max_speed / MAX(distance, 1);
         }
-
+        
+        // reset poscontrol.speed_scale until we get close to our landing to avoid slowing down early
+        if (stopping_distance() > plane.auto_state.wp_distance || plane.auto_state.wp_distance < 5.0) {                  
+            poscontrol.final_decel = 1;   
+        }                                 
+        if (poscontrol.final_decel <= 0) {
+            poscontrol.max_speed = wp_nav->get_default_speed_xy() * 0.01;
+            poscontrol.speed_scale = poscontrol.max_speed / MAX(distance, 1);     
+        }
+     
         // run fixed wing navigation
         plane.nav_controller->update_waypoint(plane.prev_WP_loc, loc);
 
-        /*
-          calculate target velocity, not dropping it below 2m/s
-         */
+       
+        // calculate target velocity, not dropping it below 2m/s       
         const float final_speed = 2.0f;
         Vector2f target_speed_xy = diff_wp * poscontrol.speed_scale;
         float target_speed = target_speed_xy.length();
@@ -2395,6 +2404,15 @@ void QuadPlane::vtol_position_controller(void)
         } else {
             poscontrol.max_speed = target_speed;
         }
+        
+        //dev
+        const uint32_t now = AP_HAL::millis();
+        if (now - qrtl_message > 2000) {
+            qrtl_message = now;  
+            gcs().send_text(MAV_SEVERITY_INFO, "D1: %.1f D2 %.1f QRTL Speed: %.1f", plane.auto_state.wp_distance, distance, target_speed);    
+        }     
+        
+             
         pos_control->set_desired_velocity_xy(target_speed_xy.x*100,
                                              target_speed_xy.y*100);
 
@@ -2439,6 +2457,7 @@ void QuadPlane::vtol_position_controller(void)
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(plane.nav_roll_cd,
                                                                              plane.nav_pitch_cd,
                                                                              desired_auto_yaw_rate_cds() + get_weathervane_yaw_rate_cds());
+        // these might be off
         if (plane.auto_state.wp_proportion >= 1 ||
             plane.auto_state.wp_distance < 5) {
             poscontrol.state = QPOS_POSITION2;
@@ -2695,6 +2714,7 @@ void QuadPlane::init_qrtl(void)
     poscontrol.slow_descent = (plane.current_loc.alt > plane.next_WP_loc.alt);
     poscontrol.state = QPOS_POSITION1;
     poscontrol.speed_scale = 0;
+    poscontrol.final_decel = 0;
     pos_control->set_desired_accel_xy(0.0f, 0.0f);
     pos_control->init_xy_controller();
 }
@@ -2783,6 +2803,7 @@ bool QuadPlane::do_vtol_land(const AP_Mission::Mission_Command& cmd)
     plane.next_WP_loc.alt = plane.current_loc.alt;
     poscontrol.state = QPOS_POSITION1;
     poscontrol.speed_scale = 0;
+    poscontrol.final_decel = 0;
     pos_control->set_desired_accel_xy(0.0f, 0.0f);
     pos_control->init_xy_controller();
 
@@ -3144,6 +3165,7 @@ void QuadPlane::guided_start(void)
 {
     poscontrol.state = QPOS_POSITION1;
     poscontrol.speed_scale = 0;
+    poscontrol.final_decel = 0;
     guided_takeoff = false;
     setup_target_position();
     poscontrol.slow_descent = (plane.current_loc.alt > plane.next_WP_loc.alt);

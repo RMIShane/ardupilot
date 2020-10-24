@@ -112,10 +112,18 @@ void Plane::setup_glide_slope(void)
  */
 int32_t Plane::get_RTL_altitude()
 {
+    int32_t alt;
+    
     if (g.RTL_altitude_cm < 0) {
-        return current_loc.alt;
+        alt = current_loc.alt;
+    }  
+    else {
+    alt = g.RTL_altitude_cm + home.alt;
     }
-    return g.RTL_altitude_cm + home.alt;
+    
+    Location temp_loc = rally.calc_best_rally_or_home_location(current_loc, alt);
+    
+    return temp_loc.alt;   
 }
 
 /*

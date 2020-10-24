@@ -317,6 +317,7 @@ void Plane::do_RTL(int32_t rtl_altitude)
     auto_state.crosstrack = false;
     prev_WP_loc = current_loc;
     next_WP_loc = rally.calc_best_rally_or_home_location(current_loc, rtl_altitude);
+    next_WP_loc.alt = rtl_altitude;  // always return the altitude we pass in (this is required for RTL Altitude Hold)
     setup_terrain_target_alt(next_WP_loc);
     set_target_altitude_location(next_WP_loc);
 

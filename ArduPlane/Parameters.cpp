@@ -1282,6 +1282,17 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Increment: 1
     // @User: Advanced
     AP_GROUPINFO("ECU_THR_HLD", 26, ParametersG2, ecu_thr_hld, 10),
+    
+    // @Param: RTL_ALT_HOLD
+    // @DisplayName: RTL Altitude Hold
+    // @Description: If current altitude is greater than the rally point altitude hold current altitude until within 500m of the rally location
+    // @Range: 0 1
+    // @Units: %
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("RTL_ALT_HOLD", 27, ParametersG2, rtl_alt_hold, 0),
+    
+    
 
     AP_GROUPEND
 };

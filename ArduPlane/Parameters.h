@@ -578,6 +578,9 @@ public:
     
     //ECU Throttle Hold
     AP_Int8 ecu_thr_hld;
+    
+    //RTL Altitude Hold
+    AP_Int8 rtl_alt_hold;
 
 };
 

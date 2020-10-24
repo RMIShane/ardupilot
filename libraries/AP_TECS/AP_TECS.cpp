@@ -937,9 +937,9 @@ void AP_TECS::_update_pitch(void)
     if (now_ms - ASPitchScaleDev_ms > 2000){
         ASPitchScaleDev_ms = now_ms;
 	
-	if (ASPitchScaleSmoothed < .95f){     
-	    gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f PD: %.2f PS: %.2f" ,_TAS_state ,(_pitch_dem * 57.2958), (ASPitchScaleSmoothed * 57.2958));
-        }
+	//if (ASPitchScaleSmoothed < .95f){     
+	//    gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
+        //}
     } 
      
     // Rate limit the pitch demand to comply with specified vertical
