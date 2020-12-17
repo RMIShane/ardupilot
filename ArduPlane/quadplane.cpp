@@ -2406,11 +2406,11 @@ void QuadPlane::vtol_position_controller(void)
         }
         
         //dev
-        const uint32_t now = AP_HAL::millis();
-        if (now - qrtl_message > 2000) {
-            qrtl_message = now;  
-            gcs().send_text(MAV_SEVERITY_INFO, "D1: %.1f D2 %.1f QRTL Speed: %.1f", plane.auto_state.wp_distance, distance, target_speed);    
-        }     
+        //const uint32_t now = AP_HAL::millis();
+        //if (now - qrtl_message > 2000) {
+        //    qrtl_message = now;  
+        //    gcs().send_text(MAV_SEVERITY_INFO, "D1: %.1f D2 %.1f QRTL Speed: %.1f", plane.auto_state.wp_distance, distance, target_speed);    
+        //}     
         
              
         pos_control->set_desired_velocity_xy(target_speed_xy.x*100,

@@ -50,11 +50,11 @@ void ModeGuided::update()
         if (plane.current_loc.alt < plane.current_NAV_altitude - 200){
             
             //dev messaging
-            float current_altitude = plane.current_loc.alt - plane.home.alt;
-            float current_distance = plane.current_loc.get_distance(plane.next_WP_loc);
-            float low_alt_cnt = plane.low_altitude_count;
-            float NAV_alt = plane.current_NAV_altitude - plane.home.alt;
-            gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.2f Dist: %.2f LAC: %.2f NavAlt: %.2f" ,current_altitude, current_distance, low_alt_cnt, NAV_alt);
+            //float current_altitude = plane.current_loc.alt - plane.home.alt;
+            //float current_distance = plane.current_loc.get_distance(plane.next_WP_loc);
+            //float low_alt_cnt = plane.low_altitude_count;
+            //float NAV_alt = plane.current_NAV_altitude - plane.home.alt;
+            //gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.2f Dist: %.2f LAC: %.2f NavAlt: %.2f" ,current_altitude, current_distance, low_alt_cnt, NAV_alt);
                        
             // Are we decending?
             if (plane.current_loc.alt < plane.last_low_altitude - 300){

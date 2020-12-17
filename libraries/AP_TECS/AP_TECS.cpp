@@ -911,10 +911,21 @@ void AP_TECS::_update_pitch(void)
     // SuperVolo
     // Reduce pitch demand if approaching minimum airspeed
     // Compensates for varible max thrust and changing weight in internanl combustion vehicles      
+    
+    // New
+    // Fuel Comp
+    float fuel_comp_arspd = 0.0f;   
+    
+    AP_EFI *efi = AP::EFI();
+    
+    if (efi != nullptr) {        
+        fuel_comp_arspd = ((efi->get_tank_pct() * efi->fuel_comp_arspd) / 100.0f);            
+    } 
+    
     float ASPitchScale = 1.0f;    
-    if (_TAS_state - _TASmin < (_TASmax - _TASmin) *.25f){
+    if (_TAS_state < _TASmin) {
       
-        ASPitchScale = (_TAS_state - _TASmin) / ((_TASmax-_TASmin) * .25f);
+        ASPitchScale = (_TAS_state - (_TASmin - 2.0 + (fuel_comp_arspd / 2.0))) / (_TASmin - (_TASmin - 2.0 + (fuel_comp_arspd / 2.0)));  //Temp Solution (maybe okay permanantly)
         if (ASPitchScale > 1.0f){
             ASPitchScale = 1.0f;
         }
@@ -923,23 +934,36 @@ void AP_TECS::_update_pitch(void)
         }
     }
     
-    //Pitch Scale Smoothing
+    // Old
+    //float ASPitchScale = 1.0f;    
+    //if (_TAS_state - _TASmin < (_TASmax - _TASmin) *.25f){
+      
+    //    ASPitchScale = (_TAS_state - _TASmin) / ((_TASmax-_TASmin) * .25f);
+    //    if (ASPitchScale > 1.0f){
+    //        ASPitchScale = 1.0f;
+    //    }
+    //    if (ASPitchScale < 0.0f){
+    //        ASPitchScale = 0.0f;
+    //    }
+    //}
+    
+    // Pitch Scale Smoothing
     const uint32_t now_ms = AP_HAL::millis();      
     if (now_ms - ASPitchScale_ms > 100){
         ASPitchScale_ms = now_ms;
         ASPitchScaleSmoothed = (ASPitchScaleSmoothed * .9f) + (ASPitchScale *.1f);
     }
     
-    //Scale Pitch and apply _glide_pitch in radians. (this allows us to force the nose down beyond zero to maintain airspeed)
+    // Scale Pitch and apply _glide_pitch in radians. (this allows us to force the nose down beyond zero to maintain airspeed)
     _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * (_glide_pitch / 57.2958));
            
-    //Dev Messaging     
+    // Dev Messaging     
     if (now_ms - ASPitchScaleDev_ms > 2000){
         ASPitchScaleDev_ms = now_ms;
 	
-	//if (ASPitchScaleSmoothed < .95f){     
-	//    gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
-        //}
+	if (ASPitchScaleSmoothed < .95f){     
+	    gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
+        }
     } 
      
     // Rate limit the pitch demand to comply with specified vertical

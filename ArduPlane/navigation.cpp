@@ -176,13 +176,14 @@ void Plane::calc_airspeed_errors()
     
     //SuperVolo
     //Throttle nudge message in MPH
-    const uint32_t now = AP_HAL::millis();
-    
-    if ((now - targ_spd_message) > 1000) {
-        targ_spd_message = now;
-        if (target_airspeed_cm > ts_message_last + 25 || target_airspeed_cm < ts_message_last - 25) {
-            ts_message_last = target_airspeed_cm;     
-            gcs().send_text(MAV_SEVERITY_INFO, "Target Arspd MPH: %.1f", (double)(ts_message_last * .02236f));
+    if (control_mode == &mode_auto || control_mode == &mode_guided){
+        const uint32_t now = AP_HAL::millis();   
+        if ((now - targ_spd_message) > 1000) {
+            targ_spd_message = now;
+            if (target_airspeed_cm > ts_message_last + 25 || target_airspeed_cm < ts_message_last - 25) {
+                ts_message_last = target_airspeed_cm;     
+                gcs().send_text(MAV_SEVERITY_INFO, "Target Arspd MPH: %.1f", (double)(ts_message_last * .02236f));
+            }
         }
     }    
 
