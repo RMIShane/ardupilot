@@ -28,6 +28,7 @@ public:
         Protocol_Type_KDECAN = 2,
         Protocol_Type_ToshibaCAN = 3,
         Protocol_Type_PiccoloCAN = 4,
+        Protocol_Type_ECU_Lite_CAN = 5,
     };
 
     void init(void);

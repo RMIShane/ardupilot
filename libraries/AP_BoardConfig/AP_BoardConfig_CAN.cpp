@@ -37,6 +37,7 @@
 #include <AP_ToshibaCAN/AP_ToshibaCAN.h>
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <AP_PiccoloCAN/AP_PiccoloCAN.h>
+#include <AP_EFI/AP_EFI_ECU_Lite_CAN.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -184,6 +185,22 @@ void AP_BoardConfig_CAN::init()
                     AP_BoardConfig::config_error("PiccoloCAN init failed");
                     continue;
                 }
+#endif
+#if EFI_ENABLED
+            } else if (prot_type == Protocol_Type_ECU_Lite_CAN) {
+                printf("Checking for ECU_LITE_CAN\n\n\n");
+                AP_EFI *efi = AP::EFI();
+                if (efi == nullptr) {
+                    AP_BoardConfig::config_error("ECU Lite CAN init failed (no EFI)");
+                    continue;
+                }
+                _drivers[i]._driver = new AP_EFI_ECU_Lite_CAN(*efi);
+
+                if (_drivers[i]._driver == nullptr) {
+                    AP_BoardConfig::config_error("ECU Lite CAN init failed");
+                    continue;
+                }
+                printf("Selected ECU_LITE_CAN\n\n\n");
 #endif
             } else {
                 continue;
