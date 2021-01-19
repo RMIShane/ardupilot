@@ -69,9 +69,10 @@ public:
 
     // Backend driver types
     enum EFI_Communication_Type {
-        EFI_COMMUNICATION_TYPE_NONE      = 0,
-        EFI_COMMUNICATION_TYPE_SERIAL_MS = 1,
-        EFI_Communication_Type_ECU_LITE  = 2,
+        EFI_COMMUNICATION_TYPE_NONE         = 0,
+        EFI_COMMUNICATION_TYPE_SERIAL_MS    = 1,
+        EFI_Communication_Type_ECU_LITE     = 2,
+        EFI_Communication_Type_ECU_LITE_CAN = 3,
     };
 
     static AP_EFI *get_singleton(void) {

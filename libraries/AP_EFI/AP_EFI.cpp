@@ -20,6 +20,11 @@
 #include "AP_EFI_Serial_MS.h"
 #include "AP_EFI_ECU_Lite.h"
 
+#if HAL_WITH_UAVCAN
+  #include "AP_EFI_ECU_Lite_CAN.h"
+  #include <AP_BoardConfig/AP_BoardConfig_CAN.h>
+#endif // HAL_WITH_UAVCAN
+
 extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
@@ -27,7 +32,7 @@ const AP_Param::GroupInfo AP_EFI::var_info[] = {
     // @Param: _TYPE
     // @DisplayName: EFI communication type
     // @Description: What method of communication is used for EFI #1
-    // @Values: 0:None,1:Serial-MS,2:ECU-Lite
+    // @Values: 0:None,1:Serial-MS,2:ECU-Lite,3:ECU-Lite-CAN
     // @User: Advanced
     // @RebootRequired: True
     AP_GROUPINFO_FLAGS("_TYPE", 1, AP_EFI, type, 0, AP_PARAM_FLAG_ENABLE),
@@ -84,6 +89,16 @@ void AP_EFI::init(void)
 
         case EFI_Communication_Type_ECU_LITE:
             backend = new AP_EFI_ECU_Lite(*this);
+            break;
+        case EFI_Communication_Type_ECU_LITE_CAN:
+#if HAL_WITH_UAVCAN
+            for (uint8_t i = 0; i < AP::can().get_num_drivers(); i++) {
+                backend = AP_EFI_ECU_Lite_CAN::get_singleton(i);
+                if (backend != nullptr) {
+                    break;
+                }
+            }
+#endif // HAL_WITH_UAVCAN
             break;
 
     }
