@@ -103,7 +103,7 @@ void ModeAuto::update()
         plane.last_altitude_check_ms = AP_HAL::millis();
         
         // Update current NAV altitude
-        plane.current_NAV_altitude = plane.next_WP_loc.alt;     
+        plane.current_NAV_altitude = plane.next_WP_loc.alt;
         
         // Are we below our NAV Altitude?
         if (plane.current_loc.alt < plane.current_NAV_altitude - 200){

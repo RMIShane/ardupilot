@@ -176,6 +176,12 @@ private:
 
     // vertical acceleration the pilot may request
     AP_Int16 pilot_accel_z;
+    
+    // allows us to swap between liftoff and pilot_accel_z
+    AP_Int16 current_accel_z;
+    
+    // dev message
+    AP_Int8 liftoff_message;
 
     // check for quadplane assistance needed
     bool assistance_needed(float aspeed);

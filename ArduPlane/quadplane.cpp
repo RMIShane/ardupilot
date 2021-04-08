@@ -937,7 +937,7 @@ void QuadPlane::run_z_controller(void)
 
         // initialize vertical speeds and leash lengths
         pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-        pos_control->set_max_accel_z(pilot_accel_z);
+        pos_control->set_max_accel_z(current_accel_z);
         
         // it has been two seconds since we last ran the Z
         // controller. We need to assume the integrator may be way off
@@ -949,6 +949,35 @@ void QuadPlane::run_z_controller(void)
 
         last_pidz_init_ms = now;
     }
+    
+    // initial liftoff smoothing
+    if (now - takeoff_start_time_ms < 2000)  {
+    	current_accel_z = 10;
+    	if (liftoff_message == 0) {
+    		gcs().send_text(MAV_SEVERITY_INFO, "Liftoff Smoothing Active");
+    		liftoff_message = 1;
+    	}  	
+    }    
+    else if (now - takeoff_start_time_ms < 5000) {
+        float accel_z_scaler = ((now - takeoff_start_time_ms) - 2000) / 3000.0f;
+        current_accel_z = pilot_accel_z * accel_z_scaler;
+        if (current_accel_z < 10) {
+            current_accel_z = 10;
+        }
+        //else {
+            //float accel_z_message = current_accel_z;
+            //float time = now - takeoff_start_time_ms;
+            //gcs().send_text(MAV_SEVERITY_INFO, "Accel Z %.1f Scale %.1f Time %.1f", accel_z_message, accel_z_scaler, time);
+        //}
+    }   
+    else {
+    	current_accel_z = pilot_accel_z;
+    	if (liftoff_message == 1) {
+    		gcs().send_text(MAV_SEVERITY_INFO, "Liftoff Smoothing Complete");
+    		liftoff_message = 0;
+    	}
+    }
+    
     last_pidz_active_ms = now;
     pos_control->update_z_controller();    
 }
@@ -983,7 +1012,7 @@ void QuadPlane::init_hover(void)
 {
     // initialize vertical speeds and leash lengths
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-    pos_control->set_max_accel_z(pilot_accel_z);
+    pos_control->set_max_accel_z(current_accel_z);
 
     // initialise position and desired velocity
     set_alt_target_current();
@@ -1019,7 +1048,7 @@ void QuadPlane::hold_hover(float target_climb_rate)
 
     // initialize vertical speeds and acceleration
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-    pos_control->set_max_accel_z(pilot_accel_z);
+    pos_control->set_max_accel_z(current_accel_z);
 
     // call attitude controller
     multicopter_attitude_rate_update(get_desired_yaw_rate_cds());
@@ -1113,7 +1142,7 @@ void QuadPlane::init_loiter(void)
 
     // initialize vertical speed and acceleration
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-    pos_control->set_max_accel_z(pilot_accel_z);
+    pos_control->set_max_accel_z(current_accel_z);
 
     // initialise position and desired velocity
     set_alt_target_current();
@@ -1252,7 +1281,7 @@ void QuadPlane::control_loiter()
 
     // initialize vertical speed and acceleration
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-    pos_control->set_max_accel_z(pilot_accel_z);
+    pos_control->set_max_accel_z(current_accel_z);
 
     // process pilot's roll and pitch input
     loiter_nav->set_pilot_desired_acceleration(plane.channel_roll->get_control_in(),
@@ -2588,7 +2617,7 @@ void QuadPlane::setup_target_position(void)
     
     // setup vertical speed and acceleration
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-    pos_control->set_max_accel_z(pilot_accel_z);
+    pos_control->set_max_accel_z(current_accel_z);
 }
 
 /*
@@ -2751,7 +2780,8 @@ bool QuadPlane::do_vtol_takeoff(const AP_Mission::Mission_Command& cmd)
 
     // initialize vertical speed and acceleration
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
-    pos_control->set_max_accel_z(pilot_accel_z);
+    pos_control->set_max_accel_z(10);
+    liftoff_message = 0;
 
     // initialise position and desired velocity
     set_alt_target_current();
