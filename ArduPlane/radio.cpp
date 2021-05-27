@@ -232,13 +232,13 @@ void Plane::read_radio()
         //    gcs().send_text(MAV_SEVERITY_INFO, "Arspd: %d", airspeed_nudge_cm);
         //} 
         
-    //Allows negative nudge = to 75% of the differance between cruise and minimum airspeed.     
+    //Allows negative nudge = to airspeed minimum + 4 meters per second.
     } else if (g.throttle_nudge && channel_throttle->get_control_in() < 45 && geofence_stickmixing()) {
-        float nudge = (45 - channel_throttle->get_control_in()) * -0.01666f;
+        float nudge = (45 - channel_throttle->get_control_in()) * -0.02222f;
 
        
         if (ahrs.airspeed_sensor_enabled()) {
-            airspeed_nudge_cm = (aparm.airspeed_cruise_cm - ((aparm.airspeed_min * 100) + fuel_comp_arspd_cm)) * nudge;
+            airspeed_nudge_cm = (aparm.airspeed_cruise_cm - ((aparm.airspeed_min * 100) + (fuel_comp_arspd_cm / 2.0f) + 400.0)) * nudge;
         } else {
             throttle_nudge = (aparm.throttle_cruise - aparm.throttle_min) * nudge;
         }
