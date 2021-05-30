@@ -38,8 +38,8 @@ bool ModeRTL::_enter()
     if (plane.ahrs.airspeed_estimate(airspeed)){
         if (airspeed < plane.aparm.airspeed_min * .75){
                     
-            // Are we within 500m of our Rally location or home?
-            if (plane.current_loc.get_distance(plane.next_WP_loc) < 250.0){ 
+            // Are we within 1000m of our Rally location or home?
+            if (plane.current_loc.get_distance(plane.next_WP_loc) < 1000.0){
                 plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
                 gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto Switch - QRTL");
             }
@@ -54,6 +54,14 @@ void ModeRTL::update()
     plane.calc_nav_roll();
     plane.calc_nav_pitch();
     plane.calc_throttle();
+    
+    //RTL Loiter Radius
+    uint16_t radius = abs(plane.g.rtl_radius);
+    if (radius > 0) {
+        plane.loiter.direction = (plane.g.rtl_radius < 0) ? -1 : 1;
+    }
+
+    plane.update_loiter(radius);
     
     
     // RTL Altitude Monitor     
