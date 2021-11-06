@@ -51,11 +51,6 @@ void AP_EFI_ECU_Lite::update()
             internal_state.ecu_error_state = _latest.error_state;
             internal_state.synthetic_arspd = last_synthetic_arspd;
 
-            //Error State Throttle Hold
-            //if (_latest.error_state == 1) {
-                //ecu_lite_throttle_min = plane.g2.supervolo_ov_thr;
-            //}
-
             // check if we should notify on any change of status
             check_status();
 

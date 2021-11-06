@@ -38,6 +38,17 @@ void ModeGuided::update()
         plane.calc_throttle();
     }
     
+    //Guided Loiter Radius
+    uint16_t radius = abs(plane.g2.guided_radius);
+    if (radius > 0) {
+        if (plane.next_WP_loc.loiter_ccw == 1) {
+            plane.loiter.direction = -1;
+        } else {
+            plane.loiter.direction = (plane.g2.guided_radius < 0) ? -1 : 1;
+        }
+    }
+
+    plane.update_loiter(radius);
     
     // Altitude Monitoring    
     if (AP_HAL::millis() - plane.last_altitude_check_ms > 1000){            

@@ -393,6 +393,7 @@ public:
     AP_Int16 waypoint_radius;
     AP_Int16 waypoint_max_radius;
     AP_Int16 rtl_radius;
+    AP_Int16 guided_radius;
 
 #if GEOFENCE_ENABLED == ENABLED
     AP_Int8 fence_action;
@@ -581,6 +582,9 @@ public:
     
     //RTL Altitude Hold
     AP_Int8 rtl_alt_hold;
+    
+    //Guided Radius
+    AP_Int16 guided_radius;
 
 };
 

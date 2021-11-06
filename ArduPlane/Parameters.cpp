@@ -1292,8 +1292,15 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("RTL_ALT_HOLD", 27, ParametersG2, rtl_alt_hold, 0),
     
-    
-
+    // @Param: GUIDED_RADIUS
+    // @DisplayName: Guided loiter radius
+    // @Description: Defines the radius of the loiter circle when in Guided mode. If this is zero then WP_LOITER_RAD is used. If the radius is negative then a counter-clockwise is used. If positive then a clockwise loiter is used.
+    // @Range: -32767 32767
+    // @Units: m
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("GUIDED_RADIUS", 28, ParametersG2, guided_radius, 0),
+ 
     AP_GROUPEND
 };
 

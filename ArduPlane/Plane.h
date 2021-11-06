@@ -778,6 +778,9 @@ private:
     int32_t last_airspeed_check_ms;
     int16_t low_airspeed_count;
     
+    // ECU Throttle Hold during Power Bus Anomaly
+    int8_t ecu_throttle_hld = 0;
+    
 
     void adjust_nav_pitch_throttle(void);
     void update_load_factor(void);

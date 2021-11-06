@@ -427,10 +427,16 @@ void Plane::set_servos_controlled(void)
             
     //Avoid engine shutdown during voltage annomaly
     #if EFI_ENABLED
-    ecu_error = plane.g2.efi.get_ecu_error_state();  
-    #endif
-      
-    if (ecu_error == 1){
+    ecu_error = plane.g2.efi.get_ecu_error_state();      
+    if (ecu_error == 5){
+        ecu_throttle_hld = 1;
+    }
+    else if (ecu_error == 99){
+        ecu_throttle_hld = 0;
+    }
+    #endif  
+          
+    if (ecu_throttle_hld == 1){
         min_throttle = plane.g2.ecu_thr_hld;
     }
     else if (!quadplane.in_vtol_mode()) {
