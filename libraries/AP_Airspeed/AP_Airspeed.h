@@ -153,6 +153,7 @@ public:
         TYPE_I2C_DLVR_5IN=7,
         TYPE_UAVCAN=8,
         TYPE_I2C_DLVR_10IN=9,
+        TYPE_SYNTHETIC=20,
     };
 
     // get current primary sensor
