@@ -176,7 +176,7 @@ void Plane::handle_battery_failsafe(const char *type_str, const int8_t action)
             }
             FALLTHROUGH;
         case Failsafe_Action_RTL:
-            if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_LAND && control_mode != &mode_qland && !quadplane.in_vtol_land_sequence()) {
+            if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_LAND && control_mode != &mode_qland && !quadplane.in_vtol_land_sequence() && control_mode != &mode_fbwa && control_mode != &mode_qstabilize && control_mode != &mode_qloiter && control_mode != &mode_manual) {
                 // never stop a landing if we were already committed
                 if (g.rtl_autoland == 2 && plane.mission.is_best_land_sequence()) {
                     // continue mission as it will reach a landing in less distance
@@ -189,7 +189,7 @@ void Plane::handle_battery_failsafe(const char *type_str, const int8_t action)
             break;
             
         case Failsafe_Action_QRTL:
-            if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_LAND && control_mode != &mode_qland && !quadplane.in_vtol_land_sequence()) {
+            if (flight_stage != AP_Vehicle::FixedWing::FLIGHT_LAND && control_mode != &mode_qland && !quadplane.in_vtol_land_sequence() && control_mode != &mode_fbwa && control_mode != &mode_qstabilize && control_mode != &mode_qloiter && control_mode != &mode_manual) {
                 // never stop a landing if we were already committed
                 if (g.rtl_autoland == 2 && plane.mission.is_best_land_sequence()) {
                     // continue mission as it will reach a landing in less distance

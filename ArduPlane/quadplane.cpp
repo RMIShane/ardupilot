@@ -953,10 +953,6 @@ void QuadPlane::run_z_controller(void)
     // initial liftoff smoothing
     if (now - takeoff_start_time_ms < 2000)  {
     	current_accel_z = 10;
-    	if (liftoff_message == 0) {
-    		gcs().send_text(MAV_SEVERITY_INFO, "Liftoff Smoothing Active");
-    		liftoff_message = 1;
-    	}  	
     }    
     else if (now - takeoff_start_time_ms < 5000) {
         float accel_z_scaler = ((now - takeoff_start_time_ms) - 2000) / 3000.0f;
@@ -964,18 +960,9 @@ void QuadPlane::run_z_controller(void)
         if (current_accel_z < 10) {
             current_accel_z = 10;
         }
-        //else {
-            //float accel_z_message = current_accel_z;
-            //float time = now - takeoff_start_time_ms;
-            //gcs().send_text(MAV_SEVERITY_INFO, "Accel Z %.1f Scale %.1f Time %.1f", accel_z_message, accel_z_scaler, time);
-        //}
     }   
     else {
     	current_accel_z = pilot_accel_z;
-    	if (liftoff_message == 1) {
-    		gcs().send_text(MAV_SEVERITY_INFO, "Liftoff Smoothing Complete");
-    		liftoff_message = 0;
-    	}
     }
     
     last_pidz_active_ms = now;
@@ -1738,7 +1725,7 @@ void QuadPlane::update_transition(void)
         // SuperVolo
         // exit transition when transition airspeed is reached and RPM has been greater than 6500 for 4 seconds
         // avoids crash in the event of high airspeed pitot anomaly
-        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight && plane.g2.efi.get_synthetic_arspd() > 3) {
+        if (have_airspeed && aspeed > transition_speed_current && !assisted_flight && plane.g2.efi.get_synthetic_arspd() > 16) {
             transition_state = TRANSITION_TIMER;
             gcs().send_text(MAV_SEVERITY_INFO, "Transition airspeed reached %.1f", (double)aspeed);
         }
@@ -2781,7 +2768,6 @@ bool QuadPlane::do_vtol_takeoff(const AP_Mission::Mission_Command& cmd)
     // initialize vertical speed and acceleration
     pos_control->set_max_speed_z(-pilot_velocity_z_max, pilot_velocity_z_max);
     pos_control->set_max_accel_z(10);
-    liftoff_message = 0;
 
     // initialise position and desired velocity
     set_alt_target_current();

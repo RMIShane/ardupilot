@@ -190,35 +190,40 @@ void AP_EFI_ECU_Lite::check_status()
     }
     
     // SuperVolo
-    // Very Basic Synthetic Airspeed
-    if (_latest.rpm > 6500.0 && now - synthetic_arspd_ms > 1000){
+    // Very basic synthetic airspeed for transitions
+    if (now - synthetic_arspd_ms > 1000){
         synthetic_arspd_ms = now;
-        last_synthetic_arspd ++;    
         
-        if (last_synthetic_arspd > 10){
-            last_synthetic_arspd = 10;
+        if (_latest.rpm > 7500.0){
+           last_synthetic_arspd = last_synthetic_arspd + 4;
         }
-                
-    // dev message
-    //float dev_message = last_synthetic_arspd;    
-    //gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);       
-    
-    } 
-              
-    else if (_latest.rpm < 2500.0 && now - synthetic_arspd_ms > 1000){
-        synthetic_arspd_ms = now;    
-        last_synthetic_arspd --;
-        
 
-        
+        else if (_latest.rpm > 6500.0){
+           last_synthetic_arspd = last_synthetic_arspd + 2;
+        }
+
+        else if (_latest.rpm > 4500.0){
+           last_synthetic_arspd = last_synthetic_arspd + 1;
+        }
+
+        else if (_latest.rpm < 2500.0 ){  
+            last_synthetic_arspd = last_synthetic_arspd - 2;
+        }        
+    
+        if (last_synthetic_arspd > 30){
+            last_synthetic_arspd = 30;
+        }
+
         if (last_synthetic_arspd < 0){
             last_synthetic_arspd = 0;
         }
-    
-    // dev message
-    //float dev_message = last_synthetic_arspd;    
-    //gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);    
-                 
+
+        // dev message
+        float dev_message = last_synthetic_arspd;    
+        
+        if (last_synthetic_arspd < 30){
+            gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);       
+        }
     }
 }
 
