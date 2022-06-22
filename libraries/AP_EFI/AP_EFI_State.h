@@ -191,6 +191,12 @@ struct EFI_State {
     // ECU Synthetic Airspeed
     int16_t synthetic_arspd;
 
+    //ECU Cylinder Head Temp
+    float engine_temp;
+
+    //ECU Engine Health Percent
+    int16_t engine_health;
+
     // Throttle position (percent)
     uint8_t throttle_position_percent;
 

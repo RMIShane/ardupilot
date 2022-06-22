@@ -1255,8 +1255,13 @@ struct PACKED Log_EFI_ECU_Lite {
     int16_t esc_position;
     int16_t error_state;
     int32_t engine_time;
+    int16_t e_thrust;
+    int16_t carb_servo;
+    float engine_temp;
+    int16_t generator;
+    float charge_rate;
+    float engine_health;
 };
-
 
 // FMT messages define all message formats other than FMT
 // UNIT messages define units which can be referenced by FMTU messages
@@ -1567,7 +1572,7 @@ struct PACKED Log_EFI_ECU_Lite {
     { LOG_ERROR_MSG, sizeof(log_Error), \
       "ERR",   "QBB",         "TimeUS,Subsys,ECode", "s--", "F--" }, \
     { LOG_EFI_ECU_LITE_MSG, sizeof(Log_EFI_ECU_Lite), \
-      "EFI", "Qifffffhhhhhi", "TimeUS,RunTime,RPM,V,A,MAH,Fuel,PWM,CH,ChrTrim,ESC,Err,EngTime", "ssqvA%Y----s-", "F????????????" }
+      "EFI", "Qiffhhhhhfhff", "TimeUS,RunTime,RPM,Fuel,ChrTrim,ESC,Err,EThrust,CarbServ,CylTemp,Gen,ChrRate,EngHealth", "ssq%Y--------", "F????????????" }
 
 
 #define LOG_SBP_STRUCTURES \

@@ -47,8 +47,16 @@ void AP_EFI_ECU_Lite::update()
             internal_state.run_time = _latest.running_time;
             internal_state.engine_speed_rpm = _latest.rpm;
             internal_state.fuel_remaining_pct = _latest.fuel;
-            internal_state.lifetime_run_time = _latest.engine_time;
             internal_state.ecu_error_state = _latest.error_state;
+            internal_state.lifetime_run_time = _latest.engine_time;
+            internal_state.spark_dwell_time_ms = _latest.e_thrust;
+            internal_state.throttle_position_percent = _latest.carb_servo;
+            internal_state.cylinder_status[0].cylinder_head_temperature = (_latest.engine_temp + 273.0f);
+            internal_state.engine_load_percent = _latest.generator;
+            internal_state.atmospheric_pressure_kpa = _latest.charge_rate;
+            internal_state.intake_manifold_pressure_kpa = _latest.engine_health;
+            
+            //Temporary Solution
             internal_state.synthetic_arspd = last_synthetic_arspd;
 
             // check if we should notify on any change of status
@@ -83,6 +91,8 @@ void AP_EFI_ECU_Lite::check_status()
         //gcs().send_text(MAV_SEVERITY_INFO, "RPM: %f",_latest.rpm);
         //gcs().send_text(MAV_SEVERITY_INFO, "Fuel: %f",_latest.fuel);
         //gcs().send_text(MAV_SEVERITY_INFO, "MAH: %f",_latest.mah);
+        //gcs().send_text(MAV_SEVERITY_INFO, "Cylinder Temp: %f",_latest.engine_temp);
+
         
         if (_latest.error_state == 1) {
             gcs().send_text(MAV_SEVERITY_WARNING, "ENGINE RESTART");
@@ -214,16 +224,16 @@ void AP_EFI_ECU_Lite::check_status()
             last_synthetic_arspd = 30;
         }
 
-        if (last_synthetic_arspd < 0){
+        else if (last_synthetic_arspd < 0){
             last_synthetic_arspd = 0;
         }
 
         // dev message
-        float dev_message = last_synthetic_arspd;    
+        //float dev_message = last_synthetic_arspd;
         
-        if (last_synthetic_arspd < 30){
-            gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);       
-        }
+        //if (last_synthetic_arspd < 30){
+        //    gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);     
+        //}
     }
 }
 
@@ -234,16 +244,17 @@ void AP_EFI_ECU_Lite::write_log()
         time_us       : AP_HAL::micros64(),
         running_time  : _latest.running_time,
         rpm           : _latest.rpm,
-        voltage       : _latest.voltage,
-        amperage      : _latest.amperage,
-        mah           : _latest.mah,
         fuel          : _latest.fuel,
-        pwm           : _latest.pwm,
-        charging      : _latest.charging,
         charge_trim   : _latest.charge_trim,
         esc_position  : _latest.esc_position,
         error_state   : _latest.error_state,
-        engine_time   : _latest.engine_time
+        engine_time   : _latest.engine_time,
+        e_thrust      : _latest.e_thrust,
+        carb_servo    : _latest.carb_servo,
+        engine_temp   : _latest.engine_temp,
+        generator     : _latest.generator,
+        charge_rate   : _latest.charge_rate,
+        engine_health : _latest.engine_health
     };
     AP::logger().WriteBlock(&pkt, sizeof(pkt));
 }
@@ -431,9 +442,62 @@ void AP_EFI_ECU_Lite::decode_latest_term()
                 _sentence_valid = false;
             }
             break;
-
         case 24:
             _temp.engine_time = strtol(_term, NULL, 10);
+            break;
+        
+        case 25:
+            if (strcmp(_term, "ETHR") != 0) {
+                _sentence_valid = false;
+            }
+            break;
+        case 26:
+            _temp.e_thrust = strtol(_term, NULL, 10);
+            break;
+
+        case 27:
+            if (strcmp(_term, "CSER") != 0) {
+                _sentence_valid = false;
+            }
+            break;
+        case 28:
+            _temp.carb_servo = strtol(_term, NULL, 10);
+            break;
+
+        case 29:
+            if (strcmp(_term, "CHT") != 0) {
+                _sentence_valid = false;
+            }
+            break; 
+        case 30:
+            _temp.engine_temp =  strtof(_term, NULL);
+            break;
+
+        case 31:
+            if (strcmp(_term, "GEN") != 0) {
+                _sentence_valid = false;
+            }
+            break;
+        case 32:
+            _temp.generator = strtol(_term, NULL, 10);
+            break;
+         
+        case 33:
+            if (strcmp(_term, "CR") != 0) {
+                _sentence_valid = false;
+            }
+            break; 
+        case 34:
+            _temp.charge_rate =  strtof(_term, NULL);
+            break;
+
+        case 35:
+            if (strcmp(_term, "EH") != 0) {
+                _sentence_valid = false;
+            }
+            break; 
+        case 36:
+            _temp.engine_health=  strtof(_term, NULL);
             break;
     }
 

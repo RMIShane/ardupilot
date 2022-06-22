@@ -250,12 +250,37 @@ const AP_Param::GroupInfo AP_TECS::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 28, AP_TECS, _options, 0),
     
+    // @Param: PSCALE_ANGLE
+    // @DisplayName: PSCALE_ANGLE
+    // @Description: Maximum pitch down TECS will demand to maintain airspeed.
+    // @Range: 0.0 -10.0
+    // @Increment: 0.1
+    // @User: Advanced
+    AP_GROUPINFO("PSCL_ANGLE", 29, AP_TECS, _pscale_angle, -2.0),
+    
+    // @Param: PSCALE_ARSPD
+    // @DisplayName: PSCALE_ARSPD
+    // @Description: THe speed withc demanded picth will start scaling down and blendiong to PSCALE_ANGLE.
+    // @Range: 0 100
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("PSCL_ARSPD", 30, AP_TECS, _pscale_arspd, 22),
+    
+    // @Param: PSCALE_DAMP
+    // @DisplayName: PSCALE_DAMP
+    // @Description: Value used for PSCALE damping. The smaller the more damping.
+    // @Range: 0 100
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("PSCL_DAMP", 31, AP_TECS, _pscale_damp, .05),
+    
     // @Param: GLIDE_PITCH
     // @DisplayName: Pitch for glide.
-    // @Description: The pitch at which the aircraft will glide without power and maintain at least minimum airspeed.
-    // @Bitmask: 0:GliderOnly
+    // @Description: Amount to scale CLMB_MAX at full fuel level. A value of 0.25 would reduce CLMB_MAX by 75% at full fuel.
+    // @Range: 0.001 0.1
+    // @Increment: 0.01
     // @User: Advanced
-    AP_GROUPINFO("GLIDE_PITCH", 29, AP_TECS, _glide_pitch, -2.0),
+    AP_GROUPINFO("CSCL_FUEL", 32, AP_TECS, _cscale_fuel, .5),
     
 
     AP_GROUPEND
@@ -481,10 +506,19 @@ void AP_TECS::_update_height_demand(void)
         max_sink_rate = _maxSinkRate_approach;
     }
     
+    //Climb rate scaling based on fuel level
+    float fuel_comp_scale = 1.0f;   
+    AP_EFI *efi = AP::EFI();  
+    if (efi != nullptr) {        
+        fuel_comp_scale = 1.0f - (efi->get_tank_pct() * (1.0f - _cscale_fuel) / 100.0f);    
+        fuel_comp_scale = constrain_float(fuel_comp_scale, 0.0f, 1.0f);  
+    }
+
+
     // Limit height rate of change        
-    if ((_hgt_dem - _hgt_dem_prev) > (_maxClimbRate * 0.1f))
+    if ((_hgt_dem - _hgt_dem_prev) > ((_maxClimbRate * fuel_comp_scale) * 0.1f))
     {
-        _hgt_dem = _hgt_dem_prev + _maxClimbRate * 0.1f;
+        _hgt_dem = _hgt_dem_prev + (_maxClimbRate * fuel_comp_scale) * 0.1f;
     }
     else if ((_hgt_dem - _hgt_dem_prev) < (-max_sink_rate * 0.1f))
     {
@@ -922,34 +956,28 @@ void AP_TECS::_update_pitch(void)
     } 
     
     float ASPitchScale = 1.0f;
-    if (_TAS_state < _TASmin + (fuel_comp_arspd / 2.0f) + 6.0){
-        ASPitchScale = (_TAS_state - (_TASmin + (fuel_comp_arspd / 2.0f))) / 6.0f;
-        if (ASPitchScale > 1.0f){
-            ASPitchScale = 1.0f;
-        }
-        if (ASPitchScale < 0.0f){
-            ASPitchScale = 0.0f;
-        }
+    if (_TAS_state < _pscale_arspd + fuel_comp_arspd) {
+        ASPitchScale = (_TAS_state - _TASmin ) / ((_pscale_arspd + fuel_comp_arspd) - _TASmin);
+        ASPitchScale = constrain_float(ASPitchScale, 0.0f, 1.0f);
     }
     
-    // Pitch Scale Smoothing
+    // Pitch Scale Damping
     const uint32_t now_ms = AP_HAL::millis();      
-    if (now_ms - ASPitchScale_ms > 100){
+    if (now_ms - ASPitchScale_ms > 20){
         ASPitchScale_ms = now_ms;
-        ASPitchScaleSmoothed = (ASPitchScaleSmoothed * .9f) + (ASPitchScale *.1f);
+        ASPitchScaleSmoothed = (ASPitchScaleSmoothed * (1.0f - _pscale_damp)) + (ASPitchScale * _pscale_damp);
     }
     
     // Scale Pitch and apply _glide_pitch in radians. (this allows us to force the nose down beyond zero to maintain airspeed)
-    _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * (_glide_pitch / 57.2958));
+    _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * (_pscale_angle / 57.2958));
            
     // Dev Messaging     
-    //if (now_ms - ASPitchScaleDev_ms > 2000){
-        //ASPitchScaleDev_ms = now_ms;
-	
-	//if (ASPitchScaleSmoothed < .95f){     
-	//    gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
-        //}
-    //} 
+    if (now_ms - ASPitchScaleDev_ms > 1000){
+        ASPitchScaleDev_ms = now_ms;
+	    if (ASPitchScaleSmoothed < .95f){     
+	        gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
+        }
+    }
      
     // Rate limit the pitch demand to comply with specified vertical
     // acceleration limit
@@ -1011,8 +1039,18 @@ void AP_TECS::_initialise_states(int32_t ptchMinCO_cd, float hgt_afe)
 void AP_TECS::_update_STE_rate_lim(void)
 {
     // Calculate Specific Total Energy Rate Limits
-    // This is a trivial calculation at the moment but will get bigger once we start adding altitude effects   
-    _STEdot_max = _maxClimbRate * GRAVITY_MSS;
+    // This is a trivial calculation at the moment but will get bigger once we start adding altitude effects
+
+    //Climb rate scaling based on fuel level
+    float fuel_comp_scale = 1.0f;   
+    AP_EFI *efi = AP::EFI();  
+    if (efi != nullptr) {        
+        fuel_comp_scale = 1.0f - (efi->get_tank_pct() * (1.0f - _cscale_fuel) / 100.0f); 
+
+
+    }
+
+    _STEdot_max = _maxClimbRate * fuel_comp_scale * GRAVITY_MSS;
     _STEdot_min = - _minSinkRate * GRAVITY_MSS;
 }
 
