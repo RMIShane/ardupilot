@@ -972,12 +972,12 @@ void AP_TECS::_update_pitch(void)
     _pitch_dem = (_pitch_dem * ASPitchScaleSmoothed) + ((1.0f - ASPitchScaleSmoothed) * (_pscale_angle / 57.2958));
            
     // Dev Messaging     
-    if (now_ms - ASPitchScaleDev_ms > 1000){
-        ASPitchScaleDev_ms = now_ms;
-	    if (ASPitchScaleSmoothed < .95f){     
-	        gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
-        }
-    }
+    //if (now_ms - ASPitchScaleDev_ms > 1000){
+    //    ASPitchScaleDev_ms = now_ms;
+	//    if (ASPitchScaleSmoothed < .95f){     
+	//        gcs().send_text(MAV_SEVERITY_INFO, "ArSpd: %.2f Pitch: %.2f" ,_TAS_state, (_pitch_dem * 57.2958));
+    //    }
+    //}
      
     // Rate limit the pitch demand to comply with specified vertical
     // acceleration limit
