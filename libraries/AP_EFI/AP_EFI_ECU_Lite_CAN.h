@@ -38,6 +38,9 @@ public:
     
 private:
     void loop();
+	
+	uint8_t read_can_to_internal_state(void* internal_state_var, uint8_t *msg_data);
+	
 
     void log();
 
@@ -46,7 +49,46 @@ private:
     char _thread_name[10];
     uint8_t _driver_index;
     uavcan::ICanDriver* _can_driver;
+	
+	
+	// MIKE CAN PACKET FORMAT
+	// These enums describe which parameter is in the message and what data type it is.
+	enum class param_data_types_t
+	{
+		TYPE_UINT8_T = 0,
+		TYPE_INT8_T,
+		TYPE_UINT16_T,
+		TYPE_INT16_T,
+		TYPE_UINT32_T,
+		TYPE_INT32_T,
+		TYPE_FLOAT32_T
+	};
 
+	enum class ecu_parameters_t
+	{
+		ECU_PARAM_RT = 0,
+		ECU_PARAM_RPM,
+		ECU_PARAM_V,
+		ECU_PARAM_A,
+		ECU_PARAM_MAH,
+		ECU_PARAM_F,
+		ECU_PARAM_PWM,
+		ECU_PARAM_CH,
+		ECU_PARAM_ESC,
+		ECU_PARAM_CT,
+		ECU_PARAM_ES,
+		ECU_PARAM_ET,
+		// Extended params
+		ECU_PARAM_ETHR,
+		ECU_PARAM_CSER,
+		ECU_PARAM_CHT,
+		ECU_PARAM_GEN,
+		ECU_PARAM_CR,
+		ECU_PARAM_EH,
+	};
+
+#if 0
+	// OLD CAN PACKET FORMAT
     enum class ECU_Lite_CAN_ID {
         Engine_Time      = 0x1010, // run time, engine time
         Engine_Details   = 0x1020, // rpm, temp, fuel, errors, flags
@@ -78,6 +120,7 @@ private:
         int16_t charge_trim;
         int16_t esc_position;
     } ecu_internal_data_t;
+#endif
 
     enum class Error_State : uint8_t {
         None                = 0,

@@ -73,10 +73,12 @@ void AP_EFI_ECU_Lite_CAN::init(uint8_t driver_index, bool enable_filters)
         return;
     }
 
-    snprintf(_thread_name, sizeof(_thread_name), "ecu_lite_can_%u", driver_index);
+    //snprintf(_thread_name, sizeof(_thread_name), "ecu_lite_can_%u", driver_index);
+    strcpy(_thread_name, "ecu_lite_can");
 
     // start thread for receiving and sending CAN frames
-    if (!hal.scheduler->thread_create(FUNCTOR_BIND_MEMBER(&AP_EFI_ECU_Lite_CAN::loop, void), _thread_name, 4096, AP_HAL::Scheduler::PRIORITY_CAN, 0)) {
+    if (!hal.scheduler->thread_create(FUNCTOR_BIND_MEMBER(&AP_EFI_ECU_Lite_CAN::loop, void), _thread_name, 4096, 
+AP_HAL::Scheduler::PRIORITY_CAN, 0)) {
         debug_can(1, "ECU Lite CAN: couldn't create thread\n");
         return;
     }
@@ -86,6 +88,51 @@ void AP_EFI_ECU_Lite_CAN::init(uint8_t driver_index, bool enable_filters)
     debug_can(2, "ECU Lite CAN: init done\n");
 
     return;
+}
+
+// MIKE ADDED THESE FUNCTIONS
+
+// Read a value from a can packet and update the internal_state with it.
+uint8_t AP_EFI_ECU_Lite_CAN::read_can_to_internal_state(void* internal_state_var, uint8_t *msg_data)
+{
+	uint8_t r = 1;
+	if (sem.take(1)) 
+	{
+		// read the data type from the can message
+		uint8_t data_type = msg_data[4];
+		
+		// the data is just copied into the frame data starting at [0]
+		// figure out what type it is and copy it into the internal state.
+		if((param_data_types_t)data_type == param_data_types_t::TYPE_INT16_T) // parse a int16
+		{
+			int16_t *data = (int16_t*)msg_data;
+			internal_state_var = data; // read the data into the internal state;
+		}
+		else if((param_data_types_t)data_type == param_data_types_t::TYPE_INT32_T) // parse a int32
+		{
+			int32_t *data = (int32_t*)msg_data;
+			internal_state_var = data; // read the data into the internal state;					
+		}
+		else if((param_data_types_t)data_type == param_data_types_t::TYPE_FLOAT32_T) // parse a int16
+		{
+			float_t *data = (float_t*)msg_data;
+			internal_state_var = data; // read the data into the internal state;	
+		}
+		else
+		{
+			debug_can(2, "Unknown data type!");
+			r = 0; // Failed
+		}
+		if(r)
+			internal_state.last_updated_ms = AP_HAL::millis(); // update time
+		sem.give();
+	}
+	else 
+	{
+		debug_can(2, "Failed to acquire the lock");
+		r = 0; // Failed
+	}
+	return r;
 }
 
 void AP_EFI_ECU_Lite_CAN::loop() {
@@ -117,7 +164,76 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 
             if (res == 1) {
                 const uint32_t id =  frame.id & uavcan::CanFrame::MaskExtID;
+				
+				// MIKE'S NEW CODE HERE
+				// make sure ID contains our magic number (0x22xx)
+				if((id & 0xFFFFFF00) == 0x2200)
+				{
+					// ECU Packet was detected
+					uint8_t param_id = id & 0xFF;
+					
+					// switch off the param id then extract the data
+					switch((ecu_parameters_t)param_id)
+					{
+						case ecu_parameters_t::ECU_PARAM_RT:
+							read_can_to_internal_state(&internal_state.run_time, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_RPM:
+							read_can_to_internal_state(&internal_state.engine_speed_rpm, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_V:
+							read_can_to_internal_state(&ecu_state.voltage, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_A:
+							read_can_to_internal_state(&ecu_state.amperage, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_MAH:
+							read_can_to_internal_state(&ecu_state.mah, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_F:
+							read_can_to_internal_state(&internal_state.fuel_remaining_pct, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_PWM:
+							read_can_to_internal_state(&ecu_state.pwm, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_CH:
+							//read_can_to_internal_state(&ASFDDF, frame.data); // TODO INSERT APPROPRIATE INTERNAL OR ECU STATE VARIABLES
+							break;
+						case ecu_parameters_t::ECU_PARAM_ESC:
+							read_can_to_internal_state(&ecu_state.esc_position, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_CT:
+							read_can_to_internal_state(&ecu_state.charge_trim, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_ES:
+							//read_can_to_internal_state(&ASFD, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_ET:
+							read_can_to_internal_state(&internal_state.lifetime_run_time, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_ETHR:
+							//read_can_to_internal_state(&ASFD, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_CSER:
+							//read_can_to_internal_state(&ASFS, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_CHT:
+							read_can_to_internal_state(&internal_state.cylinder_status[0].cylinder_head_temperature, frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_GEN:
+							//read_can_to_internal_state(&ASF, &frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_CR:
+							//read_can_to_internal_state(&SDG, &frame.data);
+							break;
+						case ecu_parameters_t::ECU_PARAM_EH:
+							//read_can_to_internal_state(&ADSGF, &frame.data);
+							break;
+					}
+				}
 
+#if 0
+				// OLD CODE
                 switch ((ECU_Lite_CAN_ID)id) {
                     case ECU_Lite_CAN_ID::Engine_Time:
                         if (sem.take(1)) {
@@ -135,7 +251,8 @@ void AP_EFI_ECU_Lite_CAN::loop() {
                             internal_state.last_updated_ms = AP_HAL::millis();
                             ecu_engine_details_t *data = (ecu_engine_details_t *)frame.data;
                             internal_state.engine_speed_rpm = data->rpm;
-                            internal_state.cylinder_status[0].cylinder_head_temperature = (((data->engine_temp_f * 1e-1f) - 32.0f) * (5.0f / 9.0f)) + C_TO_KELVIN;
+                            internal_state.cylinder_status[0].cylinder_head_temperature = (((data->engine_temp_f * 1e-1f) - 32.0f) * 
+(5.0f / 9.0f)) + C_TO_KELVIN;
                             internal_state.fuel_remaining_pct = data->fuel * (100.0f / 0xFFFF);
                             ecu_state.flags = data->flags;
                             sem.give();
@@ -145,7 +262,8 @@ void AP_EFI_ECU_Lite_CAN::loop() {
                         break;
                     case ECU_Lite_CAN_ID::Charging_Details:
                         if (sem.take(1)) {
-                            // FIXME: we haven't actually updated internal state, but this is still the most convient tool to flag everything though
+                            // FIXME: we haven't actually updated internal state, but this is still the most convient tool to flag 
+everything though
                             internal_state.last_updated_ms = AP_HAL::millis();
                             ecu_charging_details_t *data = (ecu_charging_details_t *)frame.data;
                             ecu_state.voltage = data->voltage * 1e-3f;
@@ -158,7 +276,8 @@ void AP_EFI_ECU_Lite_CAN::loop() {
                         break;
                     case ECU_Lite_CAN_ID::Logging_Data:
                         if (sem.take(1)) {
-                            // FIXME: we haven't actually updated internal state, but this is still the most convient tool to flag everything though
+                            // FIXME: we haven't actually updated internal state, but this is still the most convient tool to flag 
+everything though
                             internal_state.last_updated_ms = AP_HAL::millis();
                             ecu_internal_data_t *data = (ecu_internal_data_t *)frame.data;
                             ecu_state.pwm = data->pwm;
@@ -170,6 +289,7 @@ void AP_EFI_ECU_Lite_CAN::loop() {
                         }
                         break;
                 }
+#endif
             }
         }
 
