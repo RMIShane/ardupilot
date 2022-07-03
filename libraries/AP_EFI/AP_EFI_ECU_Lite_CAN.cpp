@@ -169,8 +169,12 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 				// make sure ID contains our magic number (0x22xx)
 				if((id & 0xFFFFFF00) == 0x2200)
 				{
-					// ECU Packet was detected
+          
+                    // ECU Packet was detected
 					uint8_t param_id = id & 0xFF;
+
+                    //Debug Message Here
+                    gcs().send_text(MAV_SEVERITY_WARNING, "CAN!!!");
 					
 					// switch off the param id then extract the data
 					switch((ecu_parameters_t)param_id)
