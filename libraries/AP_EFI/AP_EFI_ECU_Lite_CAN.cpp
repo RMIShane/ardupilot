@@ -105,18 +105,21 @@ uint8_t AP_EFI_ECU_Lite_CAN::read_can_to_internal_state(void* internal_state_var
 		// figure out what type it is and copy it into the internal state.
 		if((param_data_types_t)data_type == param_data_types_t::TYPE_INT16_T) // parse a int16
 		{
-			int16_t *data = (int16_t*)msg_data;
-			internal_state_var = data; // read the data into the internal state;
+			//int16_t *data = (int16_t*)msg_data;
+			//internal_state_var = data; // read the data into the internal state;
+            memcpy(internal_state_var, msg_data, 2); // 2 bytes
 		}
 		else if((param_data_types_t)data_type == param_data_types_t::TYPE_INT32_T) // parse a int32
 		{
-			int32_t *data = (int32_t*)msg_data;
-			internal_state_var = data; // read the data into the internal state;					
+			//int32_t *data = (int32_t*)msg_data;
+			//internal_state_var = data; // read the data into the internal state;
+            memcpy(internal_state_var, msg_data, 4); // 4 bytes					
 		}
 		else if((param_data_types_t)data_type == param_data_types_t::TYPE_FLOAT32_T) // parse a int16
 		{
-			float_t *data = (float_t*)msg_data;
-			internal_state_var = data; // read the data into the internal state;	
+			//float_t *data = (float_t*)msg_data;
+			//internal_state_var = data; // read the data into the internal state;
+            memcpy(internal_state_var, msg_data, 4); // Float is 4 bytes (hopefully?)	
 		}
 		else
 		{
@@ -166,6 +169,9 @@ void AP_EFI_ECU_Lite_CAN::loop() {
                 const uint32_t id =  frame.id & uavcan::CanFrame::MaskExtID;
 				
 				// MIKE'S NEW CODE HERE
+                gcs().send_text(MAV_SEVERITY_WARNING, "ANY CAN MESSAGE!!!");
+
+
 				// make sure ID contains our magic number (0x22xx)
 				if((id & 0xFFFFFF00) == 0x2200)
 				{
@@ -174,10 +180,11 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 					uint8_t param_id = id & 0xFF;
 
                     //Debug Message Here
-                    gcs().send_text(MAV_SEVERITY_WARNING, "CAN!!!");
+                    gcs().send_text(MAV_SEVERITY_WARNING, "ECU CAN MESSAGE!!!");
 					
 					// switch off the param id then extract the data
 					switch((ecu_parameters_t)param_id)
+
 					{
 						case ecu_parameters_t::ECU_PARAM_RT:
 							read_can_to_internal_state(&internal_state.run_time, frame.data);
@@ -201,7 +208,7 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 							read_can_to_internal_state(&ecu_state.pwm, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CH:
-							//read_can_to_internal_state(&ASFDDF, frame.data); // TODO INSERT APPROPRIATE INTERNAL OR ECU STATE VARIABLES
+							read_can_to_internal_state(&ecu_state.charging, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_ESC:
 							read_can_to_internal_state(&ecu_state.esc_position, frame.data);
@@ -210,93 +217,33 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 							read_can_to_internal_state(&ecu_state.charge_trim, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_ES:
-							//read_can_to_internal_state(&ASFD, frame.data);
+							read_can_to_internal_state(&ecu_state.error_state, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_ET:
 							read_can_to_internal_state(&internal_state.lifetime_run_time, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_ETHR:
-							//read_can_to_internal_state(&ASFD, frame.data);
+							read_can_to_internal_state(&internal_state.spark_dwell_time_ms, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CSER:
-							//read_can_to_internal_state(&ASFS, frame.data);
+							read_can_to_internal_state(&internal_state.throttle_position_percent, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CHT:
 							read_can_to_internal_state(&internal_state.cylinder_status[0].cylinder_head_temperature, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_GEN:
-							//read_can_to_internal_state(&ASF, &frame.data);
+							read_can_to_internal_state(&internal_state.engine_load_percent, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CR:
-							//read_can_to_internal_state(&SDG, &frame.data);
+							read_can_to_internal_state(&internal_state.atmospheric_pressure_kpa, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_EH:
-							//read_can_to_internal_state(&ADSGF, &frame.data);
+							read_can_to_internal_state(&internal_state.intake_manifold_pressure_kpa, frame.data);
 							break;
 					}
 				}
-
-#if 0
-				// OLD CODE
-                switch ((ECU_Lite_CAN_ID)id) {
-                    case ECU_Lite_CAN_ID::Engine_Time:
-                        if (sem.take(1)) {
-                            internal_state.last_updated_ms = AP_HAL::millis();
-                            ecu_engine_timing_t *data = (ecu_engine_timing_t *)frame.data;
-                            internal_state.run_time = data->running_time;
-                            internal_state.lifetime_run_time = data->engine_time;
-                            sem.give();
-                        } else {
-                            debug_can(2, "Failed to acquire the lock for Engine_Time");
-                        }
-                        break;
-                    case ECU_Lite_CAN_ID::Engine_Details:
-                        if (sem.take(1)) {
-                            internal_state.last_updated_ms = AP_HAL::millis();
-                            ecu_engine_details_t *data = (ecu_engine_details_t *)frame.data;
-                            internal_state.engine_speed_rpm = data->rpm;
-                            internal_state.cylinder_status[0].cylinder_head_temperature = (((data->engine_temp_f * 1e-1f) - 32.0f) * 
-(5.0f / 9.0f)) + C_TO_KELVIN;
-                            internal_state.fuel_remaining_pct = data->fuel * (100.0f / 0xFFFF);
-                            ecu_state.flags = data->flags;
-                            sem.give();
-                        } else {
-                            debug_can(2, "Failed to acquire the lock for Engine_Details");
-                        }
-                        break;
-                    case ECU_Lite_CAN_ID::Charging_Details:
-                        if (sem.take(1)) {
-                            // FIXME: we haven't actually updated internal state, but this is still the most convient tool to flag 
-everything though
-                            internal_state.last_updated_ms = AP_HAL::millis();
-                            ecu_charging_details_t *data = (ecu_charging_details_t *)frame.data;
-                            ecu_state.voltage = data->voltage * 1e-3f;
-                            ecu_state.amperage = data->amperage;
-                            ecu_state.mah = data->mah;
-                            sem.give();
-                        } else {
-                            debug_can(2, "Failed to acquire the lock for Charging_Details");
-                        }
-                        break;
-                    case ECU_Lite_CAN_ID::Logging_Data:
-                        if (sem.take(1)) {
-                            // FIXME: we haven't actually updated internal state, but this is still the most convient tool to flag 
-everything though
-                            internal_state.last_updated_ms = AP_HAL::millis();
-                            ecu_internal_data_t *data = (ecu_internal_data_t *)frame.data;
-                            ecu_state.pwm = data->pwm;
-                            ecu_state.charge_trim = data->charge_trim;
-                            ecu_state.esc_position = data->esc_position;
-                            sem.give();
-                        } else {
-                            debug_can(2, "Failed to acquire the lock for Engine_Time");
-                        }
-                        break;
-                }
-#endif
             }
         }
-
     }
 }
 

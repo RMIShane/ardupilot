@@ -203,6 +203,15 @@ struct EFI_State {
     // The index of the publishing ECU.
     uint8_t ecu_index;
 
+    //ECU Voltage
+    float voltage;
+
+    //ECU Amperage
+    float amperage;
+
+    //ECU Milliamps Consumed
+    float mah;
+
     // Spark plug activity report.
     // Can be used during pre-flight tests of the spark subsystem.
     // Use case is that usually on double spark plug engines, the 
