@@ -43,6 +43,11 @@ float AP_EFI_Backend::get_coef2(void) const
     return frontend.coef2;
 }
 
+int8_t AP_EFI_Backend::get_cyl_tmp_f(void) const
+{
+    return frontend.cyl_tmp_f;
+}
+
 bool AP_EFI_Backend::is_healthy()
 {
     return (AP_HAL::millis() - internal_state.last_updated_ms) < HEALTHY_LAST_RECEIVED_MS;

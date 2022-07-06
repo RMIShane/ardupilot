@@ -49,6 +49,8 @@ protected:
     int8_t get_uavcan_node_id(void) const;
     float get_coef1(void) const;
     float get_coef2(void) const;
+    
+    int8_t get_cyl_tmp_f(void) const;
 
 private:
     AP_EFI &frontend;

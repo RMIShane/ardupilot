@@ -105,10 +105,12 @@ protected:
     // Back end Parameters
     AP_Float coef1;
     AP_Float coef2;
+    AP_Int8 cyl_tmp_f;
 
     EFI_State state;
 
 private:
+    
     // Front End Parameters
     AP_Int8 type;
 

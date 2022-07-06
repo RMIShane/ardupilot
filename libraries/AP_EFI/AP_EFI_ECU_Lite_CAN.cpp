@@ -95,47 +95,30 @@ AP_HAL::Scheduler::PRIORITY_CAN, 0)) {
 // Read a value from a can packet and update the internal_state with it.
 uint8_t AP_EFI_ECU_Lite_CAN::read_can_to_internal_state(void* internal_state_var, uint8_t *msg_data)
 {
-	uint8_t r = 1;
-	if (sem.take(1)) 
-	{
-		// read the data type from the can message
-		uint8_t data_type = msg_data[4];
-		
-		// the data is just copied into the frame data starting at [0]
-		// figure out what type it is and copy it into the internal state.
-		if((param_data_types_t)data_type == param_data_types_t::TYPE_INT16_T) // parse a int16
-		{
-			//int16_t *data = (int16_t*)msg_data;
-			//internal_state_var = data; // read the data into the internal state;
-            memcpy(internal_state_var, msg_data, 2); // 2 bytes
-		}
-		else if((param_data_types_t)data_type == param_data_types_t::TYPE_INT32_T) // parse a int32
-		{
-			//int32_t *data = (int32_t*)msg_data;
-			//internal_state_var = data; // read the data into the internal state;
-            memcpy(internal_state_var, msg_data, 4); // 4 bytes					
-		}
-		else if((param_data_types_t)data_type == param_data_types_t::TYPE_FLOAT32_T) // parse a int16
-		{
-			//float_t *data = (float_t*)msg_data;
-			//internal_state_var = data; // read the data into the internal state;
-            memcpy(internal_state_var, msg_data, 4); // Float is 4 bytes (hopefully?)	
-		}
-		else
-		{
-			debug_can(2, "Unknown data type!");
-			r = 0; // Failed
-		}
-		if(r)
-			internal_state.last_updated_ms = AP_HAL::millis(); // update time
-		sem.give();
-	}
-	else 
-	{
-		debug_can(2, "Failed to acquire the lock");
-		r = 0; // Failed
-	}
-	return r;
+
+    // read the data type from the can message
+    uint8_t data_type = msg_data[4];
+    
+    // the data is just copied into the frame data starting at [0]
+    // figure out what type it is and copy it into the internal state.
+    if((param_data_types_t)data_type == param_data_types_t::TYPE_INT16_T) // parse a int16
+    {
+        memcpy(internal_state_var, msg_data, 2); // 2 bytes
+    }
+    else if((param_data_types_t)data_type == param_data_types_t::TYPE_INT32_T) // parse a int32
+    {
+        memcpy(internal_state_var, msg_data, 4); // 4 bytes					
+    }
+    else if((param_data_types_t)data_type == param_data_types_t::TYPE_FLOAT32_T) // parse a float
+    {
+        memcpy(internal_state_var, msg_data, 4); // Float is 4 bytes (hopefully?)
+    }
+    else
+    {
+        debug_can(2, "Unknown data type!");
+    }
+
+	return 1;
 }
 
 void AP_EFI_ECU_Lite_CAN::loop() {
@@ -169,7 +152,7 @@ void AP_EFI_ECU_Lite_CAN::loop() {
                 const uint32_t id =  frame.id & uavcan::CanFrame::MaskExtID;
 				
 				// MIKE'S NEW CODE HERE
-                gcs().send_text(MAV_SEVERITY_WARNING, "ANY CAN MESSAGE!!!");
+                //gcs().send_text(MAV_SEVERITY_WARNING, "ANY CAN MESSAGE!!!");
 
 
 				// make sure ID contains our magic number (0x22xx)
@@ -180,17 +163,17 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 					uint8_t param_id = id & 0xFF;
 
                     //Debug Message Here
-                    gcs().send_text(MAV_SEVERITY_WARNING, "ECU CAN MESSAGE!!!");
+                    //gcs().send_text(MAV_SEVERITY_WARNING, "ECU CAN MESSAGE!!!");
 					
 					// switch off the param id then extract the data
 					switch((ecu_parameters_t)param_id)
 
 					{
 						case ecu_parameters_t::ECU_PARAM_RT:
-							read_can_to_internal_state(&internal_state.run_time, frame.data);
+							read_can_to_internal_state(&ecu_state.running_time, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_RPM:
-							read_can_to_internal_state(&internal_state.engine_speed_rpm, frame.data);
+							read_can_to_internal_state(&ecu_state.rpm, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_V:
 							read_can_to_internal_state(&ecu_state.voltage, frame.data);
@@ -202,7 +185,7 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 							read_can_to_internal_state(&ecu_state.mah, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_F:
-							read_can_to_internal_state(&internal_state.fuel_remaining_pct, frame.data);
+							read_can_to_internal_state(&ecu_state.fuel, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_PWM:
 							read_can_to_internal_state(&ecu_state.pwm, frame.data);
@@ -220,25 +203,25 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 							read_can_to_internal_state(&ecu_state.error_state, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_ET:
-							read_can_to_internal_state(&internal_state.lifetime_run_time, frame.data);
+							read_can_to_internal_state(&ecu_state.engine_time, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_ETHR:
-							read_can_to_internal_state(&internal_state.spark_dwell_time_ms, frame.data);
+							read_can_to_internal_state(&ecu_state.e_thrust, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CSER:
-							read_can_to_internal_state(&internal_state.throttle_position_percent, frame.data);
+							read_can_to_internal_state(&ecu_state.carb_servo, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CHT:
-							read_can_to_internal_state(&internal_state.cylinder_status[0].cylinder_head_temperature, frame.data);
+							read_can_to_internal_state(&ecu_state.engine_temp, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_GEN:
-							read_can_to_internal_state(&internal_state.engine_load_percent, frame.data);
+							read_can_to_internal_state(&ecu_state.generator, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_CR:
-							read_can_to_internal_state(&internal_state.atmospheric_pressure_kpa, frame.data);
+							read_can_to_internal_state(&ecu_state.charge_rate, frame.data);
 							break;
 						case ecu_parameters_t::ECU_PARAM_EH:
-							read_can_to_internal_state(&internal_state.intake_manifold_pressure_kpa, frame.data);
+							read_can_to_internal_state(&ecu_state.engine_health, frame.data);
 							break;
 					}
 				}
@@ -249,6 +232,35 @@ void AP_EFI_ECU_Lite_CAN::loop() {
 
 void AP_EFI_ECU_Lite_CAN::update()
 {
+	if (sem.take(1))
+	{
+        internal_state.last_updated_ms = AP_HAL::millis();
+        internal_state.run_time = ecu_state.running_time;
+        internal_state.engine_speed_rpm = ecu_state.rpm;
+        internal_state.fuel_remaining_pct = ecu_state.fuel;
+        internal_state.lifetime_run_time = ecu_state.engine_time;
+        internal_state.spark_dwell_time_ms = ecu_state.e_thrust;
+        internal_state.throttle_position_percent = ecu_state.carb_servo;
+        internal_state.engine_load_percent = ecu_state.generator;
+        internal_state.atmospheric_pressure_kpa = ecu_state.charge_rate;
+        internal_state.intake_manifold_pressure_kpa = ecu_state.engine_health;
+
+        // Cylinder Temp Conversion
+        if (get_cyl_tmp_f() != 1) {
+            internal_state.cylinder_status[0].cylinder_head_temperature = ecu_state.engine_temp + 273.0f;
+        }
+        else{
+            internal_state.cylinder_status[0].cylinder_head_temperature = ((ecu_state.engine_temp - 32.0f) * 5.0f / 9.0f) + 273.0f;
+        }
+
+	    sem.give();
+	}
+	else
+	{
+		debug_can(2, "Failed to acquire the lock");
+	}
+
+
     // copy the data to the front end
     copy_to_frontend();
 
@@ -261,16 +273,109 @@ void AP_EFI_ECU_Lite_CAN::update()
             bool found_error = false;
             for (auto message : error_messages) {
                 if (message.error == ecu_state.error_state) {
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "ECU: %s", message.message);
+                    gcs().send_text(MAV_SEVERITY_CRITICAL, "HCU: %s", message.message);
                     found_error = true;
                     break;
                 }
             }
             if (!found_error) {
-                gcs().send_text(MAV_SEVERITY_CRITICAL, "ECU: Unknown error state %d:", (int)ecu_state.error_state);
+                gcs().send_text(MAV_SEVERITY_CRITICAL, "HCU: Unknown error state %d:", (int)ecu_state.error_state);
             }
         }
     }
+
+    // Engine Time (send once per engine cycle)
+    if (internal_state.engine_speed_rpm < 1 && send_engine_time_message) {
+        send_engine_time_message = false;
+
+        // Engine Time 
+        int16_t hours = internal_state.lifetime_run_time / 3600;
+        int16_t tenths = (internal_state.lifetime_run_time % 3600) / 360;
+        gcs().send_text(MAV_SEVERITY_INFO, "ENGINE TIME: %d.%d", hours, tenths);
+    }
+    // Reset Engine Message
+    if (internal_state.engine_speed_rpm > 1000) {
+        send_engine_time_message = true;
+    }
+
+
+    // Charge Messaging
+    float charge_current_seconds;
+    if (ecu_state.charging == 1) {
+
+        //Send charge start message (once)
+        if (send_charge_message) {
+            send_charge_message = false;
+            gcs().send_text(MAV_SEVERITY_INFO, "CHARGE START");
+        }
+
+        //Charge Timer
+        charge_current_seconds = (now - charge_start_millis) / 1000;
+        last_charge_millis = now;
+        
+        send_charge_complete_message = true;
+
+        //Charge Calibration Messaging (optional)
+        //if (plane.g2.supervolo_dev == 1){
+        //    gcs().send_text(MAV_SEVERITY_INFO, "CT:%f PWM:%d V:%.1f A:%.1f ESC:%d Trim:%d", charge_current_seconds, _latest.pwm, _latest.voltage, _latest.amperage, _latest.esc_position, _latest.charge_trim);
+            //}
+    }
+    else {
+        if (now - last_charge_millis > 200) {
+            //Send charge complete message (once)
+            if (send_charge_complete_message) {
+                send_charge_complete_message = false;
+                gcs().send_text(MAV_SEVERITY_INFO, "CHARGE STOP");
+
+                charge_current_seconds = (now - charge_start_millis) / 1000;
+                int16_t minutes = floorf(charge_current_seconds / 60);
+                int16_t seconds = charge_current_seconds - (minutes * 60);
+                gcs().send_text(MAV_SEVERITY_INFO, "CHARGE TIME %d:%d", minutes, seconds);
+            }
+
+            // Reset Current Charge Timer 
+            charge_start_millis = now;
+            send_charge_message = true;
+        }
+    }
+
+
+    // SuperVolo
+    // Very basic synthetic airspeed for transitions
+    if (now - synthetic_arspd_ms > 1000){
+        synthetic_arspd_ms = now;
+        
+        if (internal_state.engine_speed_rpm > 7500.0){
+           last_synthetic_arspd = last_synthetic_arspd + 4;
+        }
+
+        else if (internal_state.engine_speed_rpm > 6500.0){
+           last_synthetic_arspd = last_synthetic_arspd + 2;
+        }
+
+        else if (internal_state.engine_speed_rpm > 4500.0){
+           last_synthetic_arspd = last_synthetic_arspd + 1;
+        }
+
+        else if (internal_state.engine_speed_rpm < 2500.0 ){  
+            last_synthetic_arspd = last_synthetic_arspd - 2;
+        }        
+    
+        if (last_synthetic_arspd > 30){
+            last_synthetic_arspd = 30;
+        }
+
+        else if (last_synthetic_arspd < 0){
+            last_synthetic_arspd = 0;
+        }
+
+        // dev message
+        //float dev_message = last_synthetic_arspd;
+        
+        //if (last_synthetic_arspd > 0 && last_synthetic_arspd < 30){
+        //    gcs().send_text(MAV_SEVERITY_INFO, "Synthetic ArSpd: %.1f", dev_message);     
+        //}
+    }  
 
     log();
 }
@@ -286,19 +391,20 @@ void AP_EFI_ECU_Lite_CAN::log(void) {
     const struct Log_EFI_ECU_Lite pkt{
         LOG_PACKET_HEADER_INIT(LOG_EFI_ECU_LITE_MSG),
         time_us       : AP_HAL::micros64(),
-        running_time  : internal_state.run_time,
-        rpm           : (float)internal_state.engine_speed_rpm,
-        voltage       : ecu_state.voltage,
-        amperage      : ecu_state.amperage,
-        mah           : (float)ecu_state.mah,
-        fuel          : internal_state.fuel_remaining_pct,
-        pwm           : ecu_state.pwm,
-        charging      : ecu_state.flags,
+        running_time  : ecu_state.running_time,
+        rpm           : ecu_state.rpm,
+        fuel          : ecu_state.fuel,
         charge_trim   : ecu_state.charge_trim,
         esc_position  : ecu_state.esc_position,
         error_state   : (int16_t)ecu_state.error_state, // FIXME: this is 8 bits unsigned now, save the logging bandwidth
-        engine_time   : internal_state.lifetime_run_time
-    };    
+        engine_time   : ecu_state.engine_time,
+        e_thrust      : ecu_state.e_thrust,
+        carb_servo    : ecu_state.carb_servo,
+        engine_temp   : ecu_state.engine_temp,
+        generator     : ecu_state.generator,
+        charge_rate   : ecu_state.charge_rate,
+        engine_health : ecu_state.engine_health
+    };   
     AP::logger().WriteBlock(&pkt, sizeof(pkt));
 }
 

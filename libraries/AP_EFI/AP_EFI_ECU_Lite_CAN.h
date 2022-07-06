@@ -109,8 +109,20 @@ private:
       const char * message;
     };
 
+    // Status Varables
     const uint32_t notification_interval_ms = 5000;
     uint32_t last_notification_time_ms;
+    bool send_engine_time_message = true;
+    bool send_charge_message = true;
+    bool send_charge_complete_message;
+    bool send_error_state_message = true;
+    uint32_t charge_start_millis;
+    uint32_t last_charge_millis;
+
+    // SuperVolo timer for min RPM and very basic synthetic air speed
+    uint32_t synthetic_arspd_ms;
+    uint32_t synthetic_arspd_message_ms;
+    int8_t last_synthetic_arspd;
 
     static constexpr struct error_message error_messages [] = {
                                                                 {Error_State::engine_restart, "ENGINE RESTART"},
@@ -130,17 +142,27 @@ private:
     static const uint8_t CAN_IFACE_INDEX = 0; // FIXME: why do we need this, what does it mean?
 
     struct {
+        int32_t running_time;
+        float rpm;
         float voltage;
         float amperage;
         float mah;
+        float fuel;
         int16_t pwm;
         int16_t charging;
-        int16_t esc_position;
         int16_t charge_trim;
+        int16_t esc_position;
         Error_State error_state;
+        int32_t engine_time;
+        int16_t e_thrust;
+        int16_t carb_servo;
+        float engine_temp;
+        int16_t generator;
+        float charge_rate;
+        float engine_health;
+
         uint8_t flags;
         uint8_t old_flags;
     } ecu_state;
-
 };
 
