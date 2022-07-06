@@ -122,7 +122,7 @@ private:
     // SuperVolo timer for min RPM and very basic synthetic air speed
     uint32_t synthetic_arspd_ms;
     uint32_t synthetic_arspd_message_ms;
-    int8_t last_synthetic_arspd;
+    int16_t last_synthetic_arspd;
 
     static constexpr struct error_message error_messages [] = {
                                                                 {Error_State::engine_restart, "ENGINE RESTART"},

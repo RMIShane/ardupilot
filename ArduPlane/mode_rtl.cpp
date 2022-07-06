@@ -31,10 +31,12 @@ bool ModeRTL::_enter()
     //float rtl_alt = plane.RTL_altitude - plane.home.alt;
     //float wp_alt = plane.next_WP_loc.alt - plane.home.alt;
     //gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.1f RTL-Alt: %.1f WP-Alt %.1f" ,current_altitude, rtl_alt, wp_alt); 
+    //float synthetic_arspd = plane.g2.efi.get_synthetic_arspd();
+    //gcs().send_text(MAV_SEVERITY_INFO, "SYN ARSPD: %.2f", synthetic_arspd);
     
     
     // Should we be in QRTL instead? (are we hovering or failing to transition close to the home or a Rally location)
-    if (plane.g2.efi.get_synthetic_arspd() <= 3 && plane.current_loc.get_distance(plane.next_WP_loc) < 1000.0){                
+    if (plane.g2.efi.get_synthetic_arspd() <= 12 && plane.current_loc.get_distance(plane.next_WP_loc) < 1000.0){                
         plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
         gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto Switch - QRTL");
     }

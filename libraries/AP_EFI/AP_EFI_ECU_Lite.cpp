@@ -56,7 +56,7 @@ void AP_EFI_ECU_Lite::update()
             internal_state.atmospheric_pressure_kpa = _latest.charge_rate;
             internal_state.intake_manifold_pressure_kpa = _latest.engine_health;
             
-            //Temporary Solution
+            // Make Synthetic airspeed avaliable to all drivers
             internal_state.synthetic_arspd = last_synthetic_arspd;
 
             // check if we should notify on any change of status

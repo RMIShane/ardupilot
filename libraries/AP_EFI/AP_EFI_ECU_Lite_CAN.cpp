@@ -245,6 +245,9 @@ void AP_EFI_ECU_Lite_CAN::update()
         internal_state.atmospheric_pressure_kpa = ecu_state.charge_rate;
         internal_state.intake_manifold_pressure_kpa = ecu_state.engine_health;
 
+        // Make Synthetic airspeed avaliable to all drivers
+        internal_state.synthetic_arspd = last_synthetic_arspd;
+
         // Cylinder Temp Conversion
         if (get_cyl_tmp_f() != 1) {
             internal_state.cylinder_status[0].cylinder_head_temperature = ecu_state.engine_temp + 273.0f;
