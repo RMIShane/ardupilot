@@ -303,7 +303,7 @@ void AP_EFI_ECU_Lite_CAN::update()
 
 
     // Charge Messaging
-    float charge_current_seconds;
+    //float charge_current_seconds;
     if (ecu_state.charging == 1) {
 
         //Send charge start message (once)
@@ -313,10 +313,10 @@ void AP_EFI_ECU_Lite_CAN::update()
         }
 
         //Charge Timer
-        charge_current_seconds = (now - charge_start_millis) / 1000;
-        last_charge_millis = now;
+        //charge_current_seconds = (now - charge_start_millis) / 1000;
+        //last_charge_millis = now;
         
-        send_charge_complete_message = true;
+        //send_charge_complete_message = true;
 
         //Charge Calibration Messaging (optional)
         //if (plane.g2.supervolo_dev == 1){
@@ -330,14 +330,14 @@ void AP_EFI_ECU_Lite_CAN::update()
                 send_charge_complete_message = false;
                 gcs().send_text(MAV_SEVERITY_INFO, "CHARGE STOP");
 
-                charge_current_seconds = (now - charge_start_millis) / 1000;
-                int16_t minutes = floorf(charge_current_seconds / 60);
-                int16_t seconds = charge_current_seconds - (minutes * 60);
-                gcs().send_text(MAV_SEVERITY_INFO, "CHARGE TIME %d:%d", minutes, seconds);
+                //charge_current_seconds = (now - charge_start_millis) / 1000;
+                //int16_t minutes = floorf(charge_current_seconds / 60);
+                //int16_t seconds = charge_current_seconds - (minutes * 60);
+                //gcs().send_text(MAV_SEVERITY_INFO, "CHARGE TIME %d:%d", minutes, seconds);
             }
 
             // Reset Current Charge Timer 
-            charge_start_millis = now;
+            //charge_start_millis = now;
             send_charge_message = true;
         }
     }

@@ -59,6 +59,14 @@ void AP_EFI_ECU_Lite::update()
             // Make Synthetic airspeed avaliable to all drivers
             internal_state.synthetic_arspd = last_synthetic_arspd;
 
+            // Cylinder Temp Conversion
+            if (get_cyl_tmp_f() == 1) {
+                internal_state.cylinder_status[0].cylinder_head_temperature = _latest.engine_temp + 273.0f;
+            }
+            else{
+                internal_state.cylinder_status[0].cylinder_head_temperature = ((_latest.engine_temp - 32.0f) * 5.0f / 9.0f) + 273.0f;
+            }
+
             // check if we should notify on any change of status
             check_status();
 
@@ -160,7 +168,7 @@ void AP_EFI_ECU_Lite::check_status()
     }
 
     // if charging
-    float charge_current_seconds;
+    //float charge_current_seconds;
     if (_latest.charging == 1) {
 
         //Send charge start message (once)
@@ -170,10 +178,10 @@ void AP_EFI_ECU_Lite::check_status()
         }
 
         //Charge Timer
-        charge_current_seconds = (now - _charge_start_millis) / 1000;
-        _last_charge_millis = now;
+        //charge_current_seconds = (now - _charge_start_millis) / 1000;
+        //_last_charge_millis = now;
         
-        _send_charge_complete_message = true;
+        //_send_charge_complete_message = true;
 
         //Charge Calibration Messaging (optional)
         //if (plane.g2.supervolo_dev == 1){
@@ -187,14 +195,14 @@ void AP_EFI_ECU_Lite::check_status()
                 _send_charge_complete_message = false;
                 gcs().send_text(MAV_SEVERITY_INFO, "CHARGE STOP");
 
-                charge_current_seconds = (now - _charge_start_millis) / 1000;
-                int16_t minutes = floorf(charge_current_seconds / 60);
-                int16_t seconds = charge_current_seconds - (minutes * 60);
-                gcs().send_text(MAV_SEVERITY_INFO, "CHARGE TIME %d:%d", minutes, seconds);
+                //charge_current_seconds = (now - _charge_start_millis) / 1000;
+                //int16_t minutes = floorf(charge_current_seconds / 60);
+                //int16_t seconds = charge_current_seconds - (minutes * 60);
+                //gcs().send_text(MAV_SEVERITY_INFO, "CHARGE TIME %d:%d", minutes, seconds);
             }
 
             // Reset Current Charge Timer 
-            _charge_start_millis = now;
+            //_charge_start_millis = now;
             _send_charge_message = true;
         }
     }

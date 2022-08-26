@@ -98,6 +98,14 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
 	// @User: User
 	AP_GROUPINFO("FF",        8, AP_PitchController, gains.FF,       0.0f),
 
+	// @Param: ISTART
+	// @DisplayName: Integrator Start
+	// @Description: Allow user to set a pitch intergrator start point to compensate for dips after transition.
+	// @Range: 0 300
+	// @Increment: 1
+	// @User: Advanced
+	AP_GROUPINFO("ISTART",      9, AP_PitchController, gains.istart,     0),
+
 	AP_GROUPEND
 };
 
@@ -336,5 +344,9 @@ int32_t AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool 
 
 void AP_PitchController::reset_I()
 {
-	_pid_info.I = 0;
+	// Scale intergrator start
+    float intstart = gains.istart * 0.01f;
+
+	// Reset Intergrator
+	_pid_info.I = intstart;
 }
