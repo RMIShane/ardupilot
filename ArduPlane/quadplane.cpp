@@ -1810,6 +1810,9 @@ void QuadPlane::update_transition(void)
             
             assisted_flight = true;
             hold_stabilize(throttle_scaled);
+
+            // smoothly apply intergrater start value to pitchcontroler as airspeed increases
+            plane.pitchController.start_I(1.0 - transition_scale);
             
             // set desired yaw to current yaw in both desired angle and
             // rate request while waiting for transition to

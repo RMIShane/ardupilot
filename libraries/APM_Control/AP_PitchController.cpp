@@ -344,9 +344,17 @@ int32_t AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool 
 
 void AP_PitchController::reset_I()
 {
-	// Scale intergrator start
-    float intstart = gains.istart * 0.01f;
-
 	// Reset Intergrator
-	_pid_info.I = intstart;
+	_pid_info.I = 0;
+}
+
+void AP_PitchController::start_I(float scaler)
+{
+	// Scale intergrator start
+	constrain_float(scaler, 0.0, 1.0);
+
+    float I_start = gains.istart * 0.01f * scaler;
+
+	// Set Intergrator
+	_pid_info.I = I_start;
 }
