@@ -1775,8 +1775,10 @@ void QuadPlane::update_transition(void)
             
             //Fuel Comp
             float fuel_comp_arspd = 0;
+            float fuel_comp_istart = .5;
             #if EFI_ENABLED
             fuel_comp_arspd = (plane.g2.efi.get_tank_pct() * plane.g2.efi.fuel_comp_arspd) / 100.0f;
+            fuel_comp_istart = plane.g2.efi.get_tank_pct() / 100.0f;
             #endif
             
             if (have_airspeed && aspeed > plane.aparm.airspeed_min + fuel_comp_arspd && !assisted_flight) {
@@ -1812,7 +1814,7 @@ void QuadPlane::update_transition(void)
             hold_stabilize(throttle_scaled);
 
             // smoothly apply intergrater start value to pitchcontroler as airspeed increases
-            plane.pitchController.start_I(1.0 - transition_scale);
+            plane.pitchController.start_I(1.0 - transition_scale, fuel_comp_istart);
             
             // set desired yaw to current yaw in both desired angle and
             // rate request while waiting for transition to

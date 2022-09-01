@@ -15,7 +15,8 @@ public:
         AP_Float FF;
         AP_Int16 rmax;
         AP_Int16 imax;
-        AP_Int16 istart;
+        AP_Int16 ipldcmp;
+        AP_Int16 ifulcmp;
     };
 
     enum ATType {

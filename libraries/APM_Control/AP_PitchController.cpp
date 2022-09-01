@@ -101,10 +101,18 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
 	// @Param: ISTART
 	// @DisplayName: Integrator Start
 	// @Description: Allow user to set a pitch intergrator start point to compensate for dips after transition.
-	// @Range: 0 300
+	// @Range: 0 2250
 	// @Increment: 1
 	// @User: Advanced
-	AP_GROUPINFO("ISTART",      9, AP_PitchController, gains.istart,     0),
+	AP_GROUPINFO("IPLDCMP",      9, AP_PitchController, gains.ipldcmp,     0),
+
+	// @Param: IFULCMP
+	// @DisplayName: Integrator Fuel Compensation
+	// @Description: Allow user to add to the pitch intergrator start point based on fuel level.
+	// @Range: 0 2250
+	// @Increment: 1
+	// @User: Advanced
+	AP_GROUPINFO("IFULCMP",      10, AP_PitchController, gains.ifulcmp,     0),
 
 	AP_GROUPEND
 };
@@ -348,12 +356,13 @@ void AP_PitchController::reset_I()
 	_pid_info.I = 0;
 }
 
-void AP_PitchController::start_I(float scaler)
+void AP_PitchController::start_I(float scaler, float fuelcmp)
 {
 	// Scale intergrator start
 	constrain_float(scaler, 0.0, 1.0);
+    constrain_float(fuelcmp, 0.0, 1.0);
 
-    float I_start = gains.istart * 0.01f * scaler;
+    float I_start = ((gains.ipldcmp * 0.01f) + (gains.ifulcmp * 0.01f * fuelcmp)) * scaler;
 
 	// Set Intergrator
 	_pid_info.I = I_start;
