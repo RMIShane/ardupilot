@@ -113,11 +113,14 @@ private:
     const uint32_t notification_interval_ms = 5000;
     uint32_t last_notification_time_ms;
     bool send_engine_time_message = true;
-    bool send_charge_message = true;
-    bool send_charge_complete_message;
     bool send_error_state_message = true;
+    
+    bool send_charge_stop_message = false;
+    bool send_charge_start_message = true;
+    bool send_charge_complete_message = false;
+    
     uint32_t charge_start_millis;
-    uint32_t last_charge_millis;
+    uint32_t charge_mills_previous;
 
     // SuperVolo timer for min RPM and very basic synthetic air speed
     uint32_t synthetic_arspd_ms;

@@ -249,7 +249,7 @@ void AP_EFI_ECU_Lite_CAN::update()
         internal_state.synthetic_arspd = last_synthetic_arspd;
 
         // Cylinder Temp Conversion
-        if (get_cyl_tmp_f() != 1) {
+        if (get_cyl_tmp_f() == 1) {
             internal_state.cylinder_status[0].cylinder_head_temperature = ecu_state.engine_temp + 273.0f;
         }
         else{
@@ -294,7 +294,7 @@ void AP_EFI_ECU_Lite_CAN::update()
         // Engine Time 
         int16_t hours = internal_state.lifetime_run_time / 3600;
         int16_t tenths = (internal_state.lifetime_run_time % 3600) / 360;
-        gcs().send_text(MAV_SEVERITY_INFO, "ENGINE TIME: %d.%d", hours, tenths);
+        gcs().send_text(MAV_SEVERITY_INFO, "HCU: ENGINE TIME: %d.%d", hours, tenths);
     }
     // Reset Engine Message
     if (internal_state.engine_speed_rpm > 1000) {
@@ -303,43 +303,49 @@ void AP_EFI_ECU_Lite_CAN::update()
 
 
     // Charge Messaging
-    //float charge_current_seconds;
-    if (ecu_state.charging == 1) {
-
-        //Send charge start message (once)
-        if (send_charge_message) {
-            send_charge_message = false;
-            gcs().send_text(MAV_SEVERITY_INFO, "CHARGE START");
+    if (ecu_state.charging == 0) {     
+        //Send charge stop message (once)
+        if (send_charge_stop_message) {  
+            gcs().send_text(MAV_SEVERITY_INFO, "HCU: CHARGE STOP");
+            charge_mills_previous = charge_mills_previous + (now - charge_start_millis);
+            send_charge_stop_message = false;
+            send_charge_start_message = true;
         }
-
-        //Charge Timer
-        //charge_current_seconds = (now - charge_start_millis) / 1000;
-        //last_charge_millis = now;
-        
-        //send_charge_complete_message = true;
-
-        //Charge Calibration Messaging (optional)
-        //if (plane.g2.supervolo_dev == 1){
-        //    gcs().send_text(MAV_SEVERITY_INFO, "CT:%f PWM:%d V:%.1f A:%.1f ESC:%d Trim:%d", charge_current_seconds, _latest.pwm, _latest.voltage, _latest.amperage, _latest.esc_position, _latest.charge_trim);
-            //}
+        // Reset Current Charge Timer
+        charge_start_millis = now; 
     }
-    else {
-        if (now - last_charge_millis > 200) {
-            //Send charge complete message (once)
-            if (send_charge_complete_message) {
-                send_charge_complete_message = false;
-                gcs().send_text(MAV_SEVERITY_INFO, "CHARGE STOP");
-
-                //charge_current_seconds = (now - charge_start_millis) / 1000;
-                //int16_t minutes = floorf(charge_current_seconds / 60);
-                //int16_t seconds = charge_current_seconds - (minutes * 60);
-                //gcs().send_text(MAV_SEVERITY_INFO, "CHARGE TIME %d:%d", minutes, seconds);
-            }
-
-            // Reset Current Charge Timer 
-            //charge_start_millis = now;
-            send_charge_message = true;
+     
+    else if (ecu_state.charging == 1) {
+        //Send charge start message (once)
+        if (send_charge_start_message) {
+            gcs().send_text(MAV_SEVERITY_INFO, "HCU: CHARGE START");
+            send_charge_start_message = false;
+            send_charge_stop_message = true;
+            send_charge_complete_message = true;
         }
+    }
+    
+    else {     
+        //Send charge complete message (once)
+        if (send_charge_complete_message) {
+            gcs().send_text(MAV_SEVERITY_INFO, "HCU: CHARGE COMPLETE");
+            float charge_current_seconds;
+            charge_current_seconds = ((now - charge_start_millis) + charge_mills_previous) / 1000;
+            int16_t minutes = floorf(charge_current_seconds / 60);
+            int16_t seconds = charge_current_seconds - (minutes * 60);
+            if (seconds < 10){
+                gcs().send_text(MAV_SEVERITY_INFO, "HCU: CHARGE TIME %d:0%d", minutes, seconds);
+            }
+            else {
+                gcs().send_text(MAV_SEVERITY_INFO, "HCU: CHARGE TIME %d:%d", minutes, seconds);
+            }
+            charge_mills_previous = 0;
+            send_charge_complete_message = false;
+            send_charge_stop_message = false;
+            send_charge_start_message = true;
+        }
+        // Reset Current Charge Timer 
+        charge_start_millis = now;
     }
 
 

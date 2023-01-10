@@ -50,7 +50,7 @@ void ModeGuided::update()
 
     plane.update_loiter(radius);
     
-    // Altitude Monitoring    
+    // Altitude Monitoring
     if (AP_HAL::millis() - plane.last_altitude_check_ms > 1000){            
         plane.last_altitude_check_ms = AP_HAL::millis();
         
@@ -85,6 +85,25 @@ void ModeGuided::update()
         else {     
             plane.low_altitude_count = 0;
             plane.last_low_altitude = plane.current_loc.alt;
+        }
+    }
+
+
+    // Emergency QRTL Low Altitude / Close to Home.
+    if (AP_HAL::millis() - plane.last_emergency_qrtl_check > 200) {            
+        plane.last_emergency_qrtl_check = AP_HAL::millis();
+        float current_altitude = plane.current_loc.alt - plane.home.alt;
+
+        //Arm emergency QRTL when above 35 meters.
+        if (plane.emergency_qrtl_armed == false && current_altitude > 3500) {
+            plane.emergency_qrtl_armed = true;
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY QRTL ARMED");
+        }
+
+        //Switch to QRTL if below 30 meters and within 1000 meters of the takeoff location.   
+        if (plane.emergency_qrtl_armed == true && current_altitude < 3000 && plane.current_loc.get_distance(plane.ahrs.get_home()) < 1000.0) {
+            //plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY - QRTL");
         }
     }
 }

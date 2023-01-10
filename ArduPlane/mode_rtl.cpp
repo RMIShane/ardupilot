@@ -35,8 +35,9 @@ bool ModeRTL::_enter()
     //gcs().send_text(MAV_SEVERITY_INFO, "SYN ARSPD: %.2f", synthetic_arspd);
     
     
-    // Should we be in QRTL instead? (are we hovering or failing to transition close to the home or a Rally location) 
-    if (plane.g2.efi.get_synthetic_arspd() <= 12 && plane.current_loc.get_distance(plane.next_WP_loc) < 1000.0) {           
+    // Should we be in QRTL instead? 
+    // Are we hovering or failing to transition close to the home or a Rally location?
+    if (plane.g2.efi.get_synthetic_arspd() <= 16 && plane.current_loc.get_distance(plane.next_WP_loc) < 1000.0) {           
         plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
         gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto Switch - QRTL");
     }
@@ -48,6 +49,8 @@ bool ModeRTL::_enter()
             gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto Switch - QRTL");
         }
     }
+
+    
          
     return true;
 }
@@ -104,11 +107,30 @@ void ModeRTL::update()
         
         else {     
             plane.low_altitude_count = 0;
-            plane.last_low_altitude = plane.current_loc.alt;
+            plane.last_low_altitude = plane.current_loc.alt; 
+        }
+    }
+
+
+    // Emergency QRTL Low Altitude / Close to Home.
+    if (AP_HAL::millis() - plane.last_emergency_qrtl_check > 200) {            
+        plane.last_emergency_qrtl_check = AP_HAL::millis();
+        float current_altitude = plane.current_loc.alt - plane.home.alt;
+
+        //Arm emergency QRTL when above 35 meters.
+        if (plane.emergency_qrtl_armed == false && current_altitude > 3500) {
+            plane.emergency_qrtl_armed = true;
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY QRTL ARMED");
+        }
+
+        //Switch to QRTL if below 30 meters and within 1000 meters of the takeoff location.   
+        if (plane.emergency_qrtl_armed == true && current_altitude < 3000 && plane.current_loc.get_distance(plane.ahrs.get_home()) < 1000.0) {
+            //plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY - QRTL");
         }
     }
     
-    
+
     // RTL Airspeed Monitor
     if (AP_HAL::millis() - plane.last_airspeed_check_ms > 1000) {            
         plane.last_airspeed_check_ms = AP_HAL::millis();

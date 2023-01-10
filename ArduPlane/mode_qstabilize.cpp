@@ -5,6 +5,7 @@ bool ModeQStabilize::_enter()
 {
     plane.throttle_allows_nudging = true;
     plane.auto_navigation_mode = false;
+    plane.emergency_qrtl_armed = false;
     if (!plane.quadplane.init_mode() && plane.previous_mode != nullptr) {
         plane.control_mode = plane.previous_mode;
     } else {

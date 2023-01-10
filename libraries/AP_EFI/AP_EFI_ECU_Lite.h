@@ -80,11 +80,14 @@ private:
     // status test varables
     uint32_t _last_message;
     bool _send_engine_time_message = true;
-    bool _send_charge_message = true;
-    bool _send_charge_complete_message;
     bool _send_error_state_message = true;
-    uint32_t _charge_start_millis;
-    uint32_t _last_charge_millis;
+    
+    bool send_charge_stop_message = false;
+    bool send_charge_start_message = true;
+    bool send_charge_complete_message = false;
+    
+    uint32_t charge_start_millis;
+    uint32_t charge_mills_previous;
     
     // SuperVolo timer for min RPM and very basic synthetic air speed
     uint32_t synthetic_arspd_ms;

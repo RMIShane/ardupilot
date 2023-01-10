@@ -6,6 +6,7 @@ bool ModeManual::_enter()
     plane.throttle_allows_nudging = false;
     plane.auto_throttle_mode = false;
     plane.auto_navigation_mode = false;
+    plane.emergency_qrtl_armed = false;
 
     return true;
 }

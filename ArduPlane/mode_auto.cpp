@@ -30,9 +30,11 @@ bool ModeAuto::_enter()
     plane.low_airspeed_count = 0;
     
     //dev messaging
-    //float current_altitude = plane.current_loc.alt - plane.home.alt;
+    float home_dist = plane.current_loc.get_distance(plane.ahrs.get_home());
+    gcs().send_text(MAV_SEVERITY_INFO, "Dist to Home: %.2f", home_dist);
     //float NAV_alt = plane.current_NAV_altitude - plane.home.alt;
-    //gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.2f NavAlt: %.2f" ,current_altitude, NAV_alt);
+    float current_altitude = plane.current_loc.alt - plane.home.alt;
+    gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.2f" ,current_altitude);
 
 #if SOARING_ENABLED == ENABLED
     plane.g2.soaring_controller.init_cruising();
@@ -133,6 +135,29 @@ void ModeAuto::update()
         else {     
             plane.low_altitude_count = 0;
             plane.last_low_altitude = plane.current_loc.alt;
+        }
+    }
+
+    // Emergency QRTL Low Altitude / Close to Home.
+    if (AP_HAL::millis() - plane.last_emergency_qrtl_check > 200) {            
+        plane.last_emergency_qrtl_check = AP_HAL::millis();
+        float current_altitude = plane.current_loc.alt - plane.home.alt;
+        
+        //Disarmrm emergency QRTL when landing.
+        if (plane.quadplane.in_vtol_land_sequence()){
+            plane.emergency_qrtl_armed = false;
+        }
+        
+        //Arm emergency QRTL when above 35 meters.
+        else if (plane.emergency_qrtl_armed == false && current_altitude > 5000) {
+            plane.emergency_qrtl_armed = true;
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY QRTL ARMED");
+        }
+
+        //Switch to QRTL if below 30 meters and within 1000 meters of the takeoff location.   
+        if (plane.emergency_qrtl_armed == true && current_altitude < 4500 && plane.current_loc.get_distance(plane.ahrs.get_home()) < 1000.0) {
+            //plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
+            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY - QRTL");
         }
     }
 }

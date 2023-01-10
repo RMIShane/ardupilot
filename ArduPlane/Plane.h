@@ -773,6 +773,8 @@ private:
     int32_t last_altitude_check_ms;
     int32_t last_low_altitude;
     int16_t low_altitude_count;
+    bool emergency_qrtl_armed = false;
+    int32_t last_emergency_qrtl_check;
     
     // monitor airspeed during RTL (detect quadplane transision failure)
     int32_t last_airspeed_check_ms;
