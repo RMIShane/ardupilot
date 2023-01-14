@@ -1295,11 +1295,22 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Param: GUIDED_RADIUS
     // @DisplayName: Guided loiter radius
     // @Description: Defines the radius of the loiter circle when in Guided mode. If this is zero then WP_LOITER_RAD is used. If the radius is negative then a counter-clockwise is used. If positive then a clockwise loiter is used.
-    // @Range: -32767 32767
+    // @Range: 0 32767
     // @Units: m
     // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("GUIDED_RADIUS", 28, ParametersG2, guided_radius, 0),
+
+     // @Param: EMER_QRTL_ALT
+    // @DisplayName: Emergency QRTL Altitude
+    // @Description: 
+    // @Range: 0 32767
+    // @Units: m
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("EMER_QRTL_ALT", 29, ParametersG2, emer_qrtl_alt, 0),
+
+
  
     AP_GROUPEND
 };

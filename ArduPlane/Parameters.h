@@ -585,6 +585,9 @@ public:
     
     //Guided Radius
     AP_Int16 guided_radius;
+    
+    //Emergency QRTL Altitude
+    AP_Int16 emer_qrtl_alt;
 
 };
 

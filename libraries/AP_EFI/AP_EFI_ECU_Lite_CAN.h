@@ -99,7 +99,7 @@ private:
         e_thrust                = 7,
         charging_anomaly        = 8,
         fuel_sensor_anomaly     = 9,
-        battery_critical        = 10,
+        auto_idle_adjust        = 10,
         hcu_rally               = 98,
         hcu_error_cleared       = 99,
     };
@@ -137,7 +137,7 @@ private:
                                                                 {Error_State::e_thrust, "E-THRUST"},
                                                                 {Error_State::charging_anomaly, "CHARGING ANOMALY"},
                                                                 {Error_State::fuel_sensor_anomaly, "FUEL SENSOR ANOMALY"},
-                                                                {Error_State::battery_critical, "BATTERY CRITICAL"},
+                                                                {Error_State::auto_idle_adjust, "AUTO IDLE ADJUST"},
                                                                 {Error_State::hcu_rally, "HCU-RALLY"},
                                                                 {Error_State::hcu_error_cleared, "HCU ERROR CLEARED"},
                                                               };

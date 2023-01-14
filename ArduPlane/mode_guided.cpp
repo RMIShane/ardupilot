@@ -76,8 +76,8 @@ void ModeGuided::update()
                 if (plane.low_altitude_count > 5 && !plane.quadplane.in_vtol_land_sequence()) {
      
                     // Set mode to QRTL then fly torwards our rally or home location until we either get there or reach our critical battery failsafe.
-                    plane.set_mode(plane.mode_rtl, ModeReason::UNKNOWN);
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "LOW ALTITUDE - RTL");               
+                    gcs().send_text(MAV_SEVERITY_CRITICAL, "LOW ALTITUDE - RTL");
+                    plane.set_mode(plane.mode_rtl, ModeReason::UNKNOWN);              
                 }
             }
         }
@@ -94,16 +94,16 @@ void ModeGuided::update()
         plane.last_emergency_qrtl_check = AP_HAL::millis();
         float current_altitude = plane.current_loc.alt - plane.home.alt;
 
-        //Arm emergency QRTL when above 35 meters.
-        if (plane.emergency_qrtl_armed == false && current_altitude > 3500) {
+        //Arm emergency QRTL when 5 meters above EMER_QRTL_ALT.
+        if (plane.emergency_qrtl_armed == false && current_altitude > (plane.g2.emer_qrtl_alt * 100) + 500) {
             plane.emergency_qrtl_armed = true;
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY QRTL ARMED");
+            //gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY QRTL ARMED");
         }
 
-        //Switch to QRTL if below 30 meters and within 1000 meters of the takeoff location.   
-        if (plane.emergency_qrtl_armed == true && current_altitude < 3000 && plane.current_loc.get_distance(plane.ahrs.get_home()) < 1000.0) {
-            //plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
+        //Switch to QRTL if below EMER_QRTL_ALT and within 1000 meters of the takeoff location.
+        if (plane.emergency_qrtl_armed == true && current_altitude < plane.g2.emer_qrtl_alt * 100 && plane.current_loc.get_distance(plane.ahrs.get_home()) < 1000.0) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "EMERGENCY - QRTL");
+            plane.set_mode(plane.mode_qrtl, ModeReason::UNKNOWN);
         }
     }
 }

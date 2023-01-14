@@ -282,7 +282,13 @@ private:
 
     // angular error at which quad assistance is given
     AP_Int8 assist_angle;
-    uint32_t angle_error_start_ms;
+    uint32_t angle_error_start_zone_1_ms;
+    uint32_t angle_error_start_zone_2_ms;
+    uint32_t angle_error_start_zone_3_ms;
+    uint32_t angle_error_start_zone_4_ms;
+    bool angle_assist_armed; 
+    bool angle_assist_msg;
+    uint32_t angle_assist_dev_msg_ms;
 
     // altitude to trigger assistance
     AP_Int16 assist_alt;

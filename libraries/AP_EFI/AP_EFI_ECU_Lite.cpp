@@ -139,7 +139,7 @@ void AP_EFI_ECU_Lite::check_status()
         }
         
         else if (_latest.error_state == 10) {
-            gcs().send_text(MAV_SEVERITY_WARNING, "BATTERY CRITICAL");
+            gcs().send_text(MAV_SEVERITY_WARNING, "AUTO IDLE ADJUST");
         }
         
         else if (_latest.error_state == 98) {
