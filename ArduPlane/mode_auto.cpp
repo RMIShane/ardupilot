@@ -30,11 +30,11 @@ bool ModeAuto::_enter()
     plane.low_airspeed_count = 0;
     
     //dev messaging
-    float home_dist = plane.current_loc.get_distance(plane.ahrs.get_home());
-    gcs().send_text(MAV_SEVERITY_INFO, "Dist to Home: %.2f", home_dist);
+    //float home_dist = plane.current_loc.get_distance(plane.ahrs.get_home());
+    //gcs().send_text(MAV_SEVERITY_INFO, "Dist to Home: %.2f", home_dist);
     //float NAV_alt = plane.current_NAV_altitude - plane.home.alt;
-    float current_altitude = plane.current_loc.alt - plane.home.alt;
-    gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.2f" ,current_altitude);
+    //float current_altitude = plane.current_loc.alt - plane.home.alt;
+    //gcs().send_text(MAV_SEVERITY_INFO, "Alt: %.2f" ,current_altitude);
 
 #if SOARING_ENABLED == ENABLED
     plane.g2.soaring_controller.init_cruising();
