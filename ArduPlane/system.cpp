@@ -337,24 +337,44 @@ void Plane::check_long_failsafe()
             failsafe_long_on_event(FAILSAFE_LONG, ModeReason::RADIO_FAILSAFE);              
         
         // Ignore GCS failsafes as long as we have RC.
+        } else if (g.throttle_fs_enabled == 1) {
+        
+            if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_AUTO && control_mode == &mode_auto &&
+                    failsafe.last_heartbeat_ms != 0 &&
+                    (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000 &&
+                    failsafe.rc_failsafe) {
+                failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
+            } else if ((g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HEARTBEAT ||
+                        g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI) &&
+                    failsafe.last_heartbeat_ms != 0 &&
+                    (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000 && 
+                    failsafe.rc_failsafe) {
+                failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
+            } else if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI && 
+                    gcs().chan(0) != nullptr &&
+                    gcs().chan(0)->last_radio_status_remrssi_ms != 0 &&
+                    (tnow - gcs().chan(0)->last_radio_status_remrssi_ms) > g.fs_timeout_long*1000 &&
+                    failsafe.rc_failsafe) {
+                failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
+            }
+
+        // Maintain GCS Failsafe if Throttle Failsafe is disabled.
         } else if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_AUTO && control_mode == &mode_auto &&
                    failsafe.last_heartbeat_ms != 0 &&
-                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000 &&
-                   failsafe.rc_failsafe) {
+                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000) {
             failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
         } else if ((g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HEARTBEAT ||
                     g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI) &&
                    failsafe.last_heartbeat_ms != 0 &&
-                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000 && 
-                   failsafe.rc_failsafe) {
+                   (tnow - failsafe.last_heartbeat_ms) > g.fs_timeout_long*1000) {
             failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
         } else if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI && 
                    gcs().chan(0) != nullptr &&
                    gcs().chan(0)->last_radio_status_remrssi_ms != 0 &&
-                   (tnow - gcs().chan(0)->last_radio_status_remrssi_ms) > g.fs_timeout_long*1000 &&
-                   failsafe.rc_failsafe) {
+                   (tnow - gcs().chan(0)->last_radio_status_remrssi_ms) > g.fs_timeout_long*1000) {
             failsafe_long_on_event(FAILSAFE_GCS, ModeReason::GCS_FAILSAFE);
         }
+
     } else {
         uint32_t timeout_seconds = g.fs_timeout_long;
         if (g.fs_action_short != FS_ACTION_SHORT_DISABLED) {
