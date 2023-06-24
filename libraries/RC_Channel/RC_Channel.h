@@ -356,6 +356,10 @@ public:
         return _options & uint32_t(Option::IGNORE_RECEIVER);
     }
 
+    bool multiple_receiver_support() const {
+        return _options & uint32_t(Option::MULTI_RECEIVER_SUPPORT);
+    }
+
     float override_timeout_ms() const {
         return _override_timeout.get() * 1e3f;
     }
@@ -370,10 +374,11 @@ public:
 protected:
 
     enum class Option {
-        IGNORE_RECEIVER  = (1 << 0), // RC receiver modules
-        IGNORE_OVERRIDES = (1 << 1), // MAVLink overrides
-        IGNORE_FAILSAFE  = (1 << 2), // ignore RC failsafe bits
-        FPORT_PAD        = (1 << 3), // pad fport telem output
+        IGNORE_RECEIVER         = (1 << 0), // RC receiver modules
+        IGNORE_OVERRIDES        = (1 << 1), // MAVLink overrides
+        IGNORE_FAILSAFE         = (1 << 2), // ignore RC failsafe bits
+        FPORT_PAD               = (1 << 3), // pad fport telem output
+        MULTI_RECEIVER_SUPPORT  = (1 << 4), // allow multiple receivers
     };
 
     void new_override_received() {
