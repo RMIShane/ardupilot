@@ -142,6 +142,14 @@ void AP_EFI_ECU_Lite::check_status()
             gcs().send_text(MAV_SEVERITY_WARNING, "AUTO IDLE ADJUST");
         }
         
+        else if (_latest.error_state == 11) {
+            gcs().send_text(MAV_SEVERITY_WARNING, "CYLINDER TEMP HIGH");
+        }
+        
+        else if (_latest.error_state == 12) {
+            gcs().send_text(MAV_SEVERITY_WARNING, "CYLINDER TEMP CRITICAL");
+        }
+        
         else if (_latest.error_state == 98) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "HCU-RALLY");
         }

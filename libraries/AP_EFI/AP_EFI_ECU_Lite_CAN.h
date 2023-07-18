@@ -100,6 +100,8 @@ private:
         charging_anomaly        = 8,
         fuel_sensor_anomaly     = 9,
         auto_idle_adjust        = 10,
+        cyl_temp_high           = 11,
+        cyl_temp_critical       = 12,
         hcu_rally               = 98,
         hcu_error_cleared       = 99,
     };
@@ -137,7 +139,10 @@ private:
                                                                 {Error_State::e_thrust, "E-THRUST"},
                                                                 {Error_State::charging_anomaly, "CHARGING ANOMALY"},
                                                                 {Error_State::fuel_sensor_anomaly, "FUEL SENSOR ANOMALY"},
+                                                                {Error_State::auto_idle_adjust, "AUTO IDLE ADJUST"}, 
                                                                 {Error_State::auto_idle_adjust, "AUTO IDLE ADJUST"},
+                                                                {Error_State::cyl_temp_high, "CYLINDER TEMP HIGH"},
+                                                                {Error_State::cyl_temp_critical, "CYLINDER TEMP CRITICAL"},
                                                                 {Error_State::hcu_rally, "HCU-RALLY"},
                                                                 {Error_State::hcu_error_cleared, "HCU ERROR CLEARED"},
                                                               };
